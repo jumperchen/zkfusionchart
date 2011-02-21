@@ -1,0 +1,133 @@
+<zk xmlns:n="native">
+	<n:h2 align="center">2D Column Charts</n:h2>
+	<hlayout>
+		<chart title="Bar Chart" width="500" height="250" type="@{win$composer.type}"
+			threeD="@{win$composer.threeD}" orient="@{win$composer.orient}"
+			fgAlpha="128" model="${catmodel}" forward="onChartClick" />
+		<fusionchart title="Bar Chart" width="500" height="250"
+			type="@{win$composer.type}" threeD="@{win$composer.threeD}"
+			orient="@{win$composer.orient}" fgAlpha="128" model="${catmodel}"
+			forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">3D Column Charts</n:h2>
+	<hlayout>
+		<chart title="3D Bar Chart" width="500" height="250" type="@{win$composer.type}"
+			threeD="@{win$composer.threeD2}" orient="@{win$composer.orient}"
+			fgAlpha="128" model="${catmodel}" forward="onChartClick" />
+		<fusionchart title="3D Bar Chart" width="500" height="250"
+			type="@{win$composer.type}" threeD="@{win$composer.threeD2}"
+			 fgAlpha="128" model="${catmodel}"
+			forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">2D Bar Charts</n:h2>
+	<hlayout>
+		<chart title="Horizontal Bar Chart" width="500" height="250"
+			type="bar" threeD="@{win$composer.threeD}"
+			orient="@{win$composer.orient2}" fgAlpha="128" model="${catmodel}"
+			forward="onChartClick" />
+		<fusionchart title="Horizontal Bar Chart" width="500"
+			height="250" type="bar" orient="@{win$composer.orient2}"
+			fgAlpha="128" model="${catmodel}" forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">3D Bar Charts</n:h2>
+	<hlayout>
+		<chart title="3D Horizontal Bar Chart" width="500" height="250"
+			type="bar" threeD="@{win$composer.threeD2}" orient="horizontal"
+			fgAlpha="128" model="${catmodel}" forward="onChartClick" />
+		<n:div class="textDiv">
+			horizontal bar fusionchart didn't support 3D.
+		</n:div>
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">Line Charts</n:h2>
+	<hlayout>
+		<chart title="Line Chart" width="500" height="250" type="line"
+			fgAlpha="128" model="${xymodel}" forward="onChartClick" />
+		<fusionchart title="Line Chart" width="500" height="250"
+			type="line" fgAlpha="128" model="${xymodel}" forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">2D Pie Charts</n:h2>
+	<hlayout>
+		<chart title="Pie Chart" width="500" height="250" type="pie"
+			threeD="@{win$composer.threeD}" fgAlpha="128" model="${piemodel}"
+			forward="onChartClick" />
+		<fusionchart id="piefchart" title="Pie Chart" width="500"
+			height="250" type="pie" threeD="@{win$composer.threeD}" fgAlpha="128"
+			model="${piemodel}" forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">3D Pie Charts</n:h2>
+	<hlayout>
+		<chart title="3D Pie Chart" width="500" height="250" type="pie"
+			threeD="@{win$composer.threeD2}" fgAlpha="128" model="${piemodel}"
+			forward="onChartClick" />
+		<fusionchart title="3D Pie Chart" width="500" height="250"
+			type="pie" threeD="@{win$composer.threeD2}" fgAlpha="128"
+			model="${piemodel}" forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">2D/3D Combination Charts</n:h2>
+	<hlayout>
+		<fusionchart title="2D Combination Charts" width="500"
+			height="250" type="combination" threeD="@{win$composer.threeD}"
+			fgAlpha="128" model="${catmodel3}" forward="onChartClick" />
+		<fusionchart title="3D Combination Charts" width="500"
+			height="250" type="combination" threeD="@{win$composer.threeD2}"
+			fgAlpha="128" model="${catmodel3}" forward="onChartClick" />
+	</hlayout>
+
+	<separator />
+
+	<n:h2 align="center">2D Stacked Charts</n:h2>
+	<hlayout>
+		<chart title="2D Stacked Bar Charts" width="500" height="250"
+			type="@{win$composer.type2}" threeD="@{win$composer.threeD}" fgAlpha="128"
+			model="${catmodel}" forward="onChartClick" />
+		<fusionchart title="2D Stacked Bar Charts" width="500"
+			height="250" type="@{win$composer.type2}" threeD="@{win$composer.threeD}"
+			fgAlpha="128" model="${catmodel}" forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">3D Stacked Charts</n:h2>
+	<hlayout>
+		<chart title="3D Stacked Bar Charts" width="500" height="250"
+			type="@{win$composer.type2}" threeD="@{win$composer.threeD2}" fgAlpha="128"
+			model="${catmodel}" forward="onChartClick" />
+		<fusionchart title="3D Stacked Bar Charts" width="500"
+			height="250" type="@{win$composer.type2}" threeD="@{win$composer.threeD2}"
+			fgAlpha="128" model="${catmodel}" forward="onChartClick" />
+	</hlayout>
+	<separator />
+
+	<n:h2 align="center">Area Charts</n:h2>
+	<hlayout>
+		<chart title="Area Charts" width="500" height="250" type="area"
+			fgAlpha="128" model="${catmodel2}" forward="onChartClick" />
+		<fusionchart title="Area Charts" width="500" height="250"
+			type="area" fgAlpha="128" model="${catmodel2}"
+			forward="onChartClick" />
+	</hlayout>
+	<separator />
+	
+	<n:h2 align="center">Gantt Charts</n:h2>
+	<hlayout>
+		<chart title="Gantt Chart" width="500" height="250" type="gantt"
+			fgAlpha="128" model="${ganttmodel}" 
+			forward="onChartClick"/>
+		<fusionchart title="Gantt Chart" width="600" height="250" type="gantt"
+			fgAlpha="128" model="${ganttmodel}" 
+			forward="onChartClick"/>
+	</hlayout>
+</zk>

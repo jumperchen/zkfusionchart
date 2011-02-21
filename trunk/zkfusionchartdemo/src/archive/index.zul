@@ -1,0 +1,40 @@
+<?init class="org.zkoss.zkplus.databind.AnnotateDataBinderInit" ?>
+<zk>
+	<style>
+		.textDiv { 
+			height: 250px; 
+			line-height: 250px; 
+			text-align: center; 
+			vertical-align: middle; 
+			width: 500px; 
+		}
+	</style>
+	<window id="win" apply="org.zkoss.zkfusionchartdemo.FusionchartDemoComposer" height="100%">
+		<borderlayout height="100%">
+			<north height="50px">
+				<panel border="normal" framable="true" height="100%">
+					<panelchildren>
+						<checkbox label="threeD"
+							checked="@{win$composer.threeD}" />
+						<checkbox label="vertical"
+							checked="@{win$composer.vertical}" />
+						<checkbox label="stacked"
+							checked="@{win$composer.stacked}" />
+					</panelchildren>
+				</panel>
+			</north>
+			<center autoscroll="true">
+				<tabbox>
+					<tabs>
+						<tab label="chart model" />
+						<tab label="fusionchart model" />
+					</tabs>
+					<tabpanels>
+						<tabpanel fulfill="=chartModelDemo.zul"/>
+						<tabpanel fulfill="=fusionchartModelDemo.zul"/>
+					</tabpanels>
+				</tabbox>
+			</center>
+		</borderlayout>
+	</window>
+</zk>	

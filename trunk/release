@@ -1,0 +1,179 @@
+#!/bin/bash
+# release
+#
+#{{IS_NOTE
+#	Purpose:
+#		
+#	Description:
+#		
+#	History:
+#		Mon Nov 14 14:29:09     2005, Created by tomyeh
+#}}IS_NOTE
+#
+#Copyright (C) 2005 Potix Corporation. All Rights Reserved.
+#
+#{{IS_RIGHT
+#	This program is distributed under Lesser GPL Version 2.1 in the hope that
+#	it will be useful, but WITHOUT ANY WARRANTY.
+#}}IS_RIGHT
+#
+#stamp=$(date +%Y-%m-%d)
+
+target=$1
+
+javadocdir=$(grep '^javadoc' build.setting)
+javadocdir=${javadocdir#javadoc=}
+if [ "$javadocdir" = "" ] ; then
+	echo javadoc must be specified in $setting
+	exit 1
+fi
+javadocdir=${javadocdir/\~/$HOME}
+
+if [ "$target" == "zcommons-el" ] ; then
+	ver=$(head -1 zcommons-el/version)
+	zkelnm=zcommons-el-$ver
+	echo "Release $zkelnm..."
+elif [ "$target" == "fckez" ] ; then
+	ver=$(head -1 fckez/version)
+	fckeznm=zk-FCKeditor-$ver
+	echo "Release $fckeznm..."
+elif [ "$target" == "dojoz" ] ; then
+	ver=$(head -1 dojoz/version)
+	dojoznm=zk-Dojo-$ver
+	echo "Release $dojoznm..."
+elif [ "$target" == "gmapsz" ] ; then
+	ver=$(head -1 gmapsz/version)
+	gmapsznm=zk-GMaps-$ver
+	echo "Release $gmapsznm..."
+elif [ "$target" == "timelinez" ] ; then
+	ver=$(head -1 timelinez/version)
+	timelineznm=zk-Timeline-$ver
+	echo "Release $timelineznm..."
+elif [ "$target" == "timeplotz" ] ; then
+	ver=$(head -1 timeplotz/version)
+	timeplotznm=zk-Timeplot-$ver
+	echo "Release $timeplotznm..."
+else
+	echo "Usage: release [ zcommons-el | fckez | dojoz | gmapsz | timelinez | timeplotz ]"
+	exit 1
+fi
+
+rm -rf /tmp/zk
+maindir="$(pwd)"
+
+function release0 {
+	local prjnm=$1
+	local pkgnm=$2
+	echo "Release $pkgnm"
+	cd $maindir
+	mkdir -p /tmp/zk/$pkgnm/dist/lib/ext
+	mkdir -p /tmp/zk/$pkgnm/dist/src
+	mkdir -p /tmp/zk/$pkgnm/javadoc
+	
+	chmod -R 755 $maindir
+	chmod -R 755 $javadocdir
+	
+	cp build* LICENSE.txt /tmp/zk/$pkgnm
+	cp -rp bin /tmp/zk/$pkgnm
+	cp -rp $prjnm /tmp/zk/$pkgnm
+	cp dist/lib/zcommon.jar dist/lib/zweb.jar dist/lib/zk.jar dist/lib/zul.jar dist/lib/$prjnm.jar /tmp/zk/$pkgnm/dist/lib
+
+	cd /tmp/zk/$pkgnm
+	find -name .svn | xargs rm -rf
+	cd $prjnm
+	rm -rf codegen debug
+	jar cfM $prjnm-sources.jar -C src org
+	mv -f $prjnm-sources.jar ../dist/src
+	
+	cd $javadocdir
+	cp -rp $prjnm/* /tmp/zk/$pkgnm/javadoc
+
+	cd /tmp/zk
+	echo Output ${pkgnm}.zip
+	zip -qr9 ${pkgnm}.zip $pkgnm
+
+	#create maven bundle
+	mkdir -p maven
+	mkdir -p /tmp/maven
+	mv $pkgnm/dist/src/$prjnm-sources.jar maven/$prjnm-$ver-sources.jar
+	mv $pkgnm/dist/lib/$prjnm.jar maven/$prjnm-$ver.jar
+	sed -e "s/{version}/$ver/" $pkgnm/$prjnm/pom.xml > maven/pom.xml
+	echo Output $prjnm-$ver-bundle.jar
+	jar cfM $prjnm-$ver-bundle.jar -C maven .
+	mv $prjnm-$ver-bundle.jar /tmp/maven
+
+	rm -rf maven
+	rm -rf $pkgnm
+}
+function release1 {
+	local prjnm=$1
+	local pkgnm=$2
+	echo "Release $pkgnm"
+	cd $maindir
+	mkdir -p /tmp/zk/$pkgnm/dist/lib/ext
+	mkdir -p /tmp/zk/$pkgnm/dist/src
+	mkdir -p /tmp/zk/$pkgnm/javadoc
+	
+	chmod -R 755 $maindir
+	chmod -R 755 $javadocdir
+	
+	cp build* LICENSE.txt /tmp/zk/$pkgnm
+	cp -rp bin /tmp/zk/$pkgnm
+	cp -rp $prjnm /tmp/zk/$pkgnm
+	cp dist/lib/zcommon.jar dist/lib/zweb.jar dist/lib/zk.jar dist/lib/zul.jar dist/lib/timelinez.jar dist/lib/$prjnm.jar /tmp/zk/$pkgnm/dist/lib
+
+	cd /tmp/zk/$pkgnm
+	find -name .svn | xargs rm -rf
+	cd $prjnm
+	rm -rf codegen debug
+	jar cfM $prjnm-sources.jar -C src org
+	mv -f $prjnm-sources.jar ../dist/src
+	
+	cd $javadocdir
+	cp -rp $prjnm/* /tmp/zk/$pkgnm/javadoc
+
+	cd /tmp/zk
+	echo Output ${pkgnm}.zip
+	zip -qr9 ${pkgnm}.zip $pkgnm
+
+	#create maven bundle
+	mkdir -p maven
+	mkdir -p /tmp/maven
+	mv $pkgnm/dist/src/$prjnm-sources.jar maven/$prjnm-$ver-sources.jar
+	mv $pkgnm/dist/lib/$prjnm.jar maven/$prjnm-$ver.jar
+	sed -e "s/{version}/$ver/" $pkgnm/$prjnm/pom.xml > maven/pom.xml
+	echo Output $prjnm-$ver-bundle.jar
+	jar cfM $prjnm-$ver-bundle.jar -C maven .
+	mv $prjnm-$ver-bundle.jar /tmp/maven
+
+	rm -rf maven
+	rm -rf $pkgnm
+}
+#Prepare zcommons-el
+if [ "$target" == "zcommons-el" ] ; then
+	release0 "zcommons-el" $zkelnm
+fi
+
+#Prepare FCKeditor
+if [ "$target" == "fckez" ] ; then
+	release0 "fckez" $fckeznm
+fi
+
+#Prepare Dojo
+if [ "$target" == "dojoz" ] ; then
+	release0 "dojoz" $dojoznm
+fi
+
+#Prepare Google Maps
+if [ "$target" == "gmapsz" ] ; then
+	release0 "gmapsz" $gmapsznm
+fi
+
+#Prepare SIMILE Timeline
+if [ "$target" == "timelinez" ] ; then
+	release0 "timelinez" $timelineznm
+fi
+#Prepare SIMILE Timeplot
+if [ "$target" == "timeplotz" ] ; then
+	release1 "timeplotz" $timeplotznm
+fi

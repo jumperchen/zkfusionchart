@@ -1,0 +1,28 @@
+<language-addon>
+	<addon-name>fusionchart</addon-name>
+	<depends>zul</depends>
+	<language-name>xul/html</language-name>
+	
+	<version>
+		<version-class>org.zkoss.fusionchart.Version</version-class>
+		<version-uid>2.2.50-FL</version-uid>
+		<zk-version>5.0.6</zk-version><!-- or later -->
+	</version>
+	
+	<javascript-module name="fusionchart.fusionchart" version="2.2.50-FL"/>
+	
+	<zscript>
+	import org.zkoss.fusionchart.*;
+	</zscript>
+	
+	<component>
+		<component-name>fusionchart</component-name>
+		<component-class>org.zkoss.fusionchart.Fusionchart</component-class>
+		<widget-class>fchart.Fusionchart</widget-class>
+		<mold>
+            <mold-name>default</mold-name>
+            <mold-uri>mold/fusionchart.js</mold-uri>
+        </mold>
+	</component>
+	
+</language-addon>
