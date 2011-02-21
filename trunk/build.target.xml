@@ -301,7 +301,7 @@ depends="deploy.export, deploy.lib, deploy.tomcat, deploy.jboss">
 <!-- MISCELLANEOUS -->
 <!-- ============= -->
 <target name="javadoc" depends="config.build">
-	<javadoc packagenames="org.zkforge.*"
+	<javadoc packagenames="org.zkoss.fusionchart.*"
 	 destdir="${working.javadoc.dir}"
 	 author="true" protected="true" version="true" use="true"
 	 windowtitle="${project.name} ${project.version} API"
@@ -314,10 +314,10 @@ depends="deploy.export, deploy.lib, deploy.tomcat, deploy.jboss">
 			<pathelement path="${javadoc.class.path}"/>
 		</classpath>
 		<packageset dir="${src.dir}">
-			<include name="org/zkforge/**"/>
+			<include name="org/zkoss/fusionchart/**"/>
 		</packageset>
 		<fileset dir="${codegen.dir}">
-			<include name="org/zkforge/**"/>
+			<include name="org/zkoss/fusionchart/**"/>
 			<exclude name="**/*$$*"/>
 		</fileset>
 	</javadoc>
@@ -333,7 +333,7 @@ depends="deploy.export, deploy.lib, deploy.tomcat, deploy.jboss">
 		by package.html -->
 	<copy todir="${dist.javadoc.dir}" preservelastmodified="yes">
 		<fileset dir="${src.dir}"
-		 includes="org/zkforge/**/*.xml, org/zkforge/**/*.html"
+		 includes="org/zkoss/fusionchart/**/*.xml, org/zkforge/**/*.html"
 		 excludes="**/package.html" />
 	</copy>
 </target>
