@@ -9,7 +9,7 @@
 		<zk-version>5.0.6</zk-version><!-- or later -->
 	</version>
 	
-	<javascript-module name="fusionchart.fusionchart" version="2.2.50-FL"/>
+	<javascript-module name="fusionchartz.fusionchart" version="2.2.50-FL"/>
 	
 	<zscript>
 	import org.zkoss.fusionchart.*;
@@ -18,7 +18,7 @@
 	<component>
 		<component-name>fusionchart</component-name>
 		<component-class>org.zkoss.fusionchart.Fusionchart</component-class>
-		<widget-class>fchart.Fusionchart</widget-class>
+		<widget-class>fusionchartz.Fusionchart</widget-class>
 		<mold>
             <mold-name>default</mold-name>
             <mold-uri>mold/fusionchart.js</mold-uri>

@@ -9,11 +9,11 @@
 	<description>The ZK Fusionchart Project</description>
 	<url>http://www.zkoss.org/product/zkfusionchart.dsp</url>
 	<modules>
-		<module>fusionchart</module>
+		<module>fusionchartz</module>
 		<module>zkfusionchartdemo</module>
 	</modules>
 	<properties>
-		<zk.version>5.0.6.FL.20110201</zk.version>
+		<zk.version>5.0.6</zk.version>
 		<jasperreports.version>3.7.0</jasperreports.version>
 		<jfreechart.version>1.0.13</jfreechart.version>
 	</properties>
@@ -35,11 +35,11 @@
 		</repository>
 	</repositories>
 	<dependencies>
-<!--		<dependency>-->
-<!--			<groupId>org.zkoss.theme</groupId>-->
-<!--			<artifactId>breeze</artifactId>-->
-<!--			<version>${zk.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>org.zkoss.theme</groupId>
+			<artifactId>breeze</artifactId>
+			<version>${zk.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>

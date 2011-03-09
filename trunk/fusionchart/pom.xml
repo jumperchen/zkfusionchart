@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.zkoss.fusionchart</groupId>
-	<artifactId>fusionchart</artifactId>
-	<version>2.2.50.FL.20110221</version>
+	<artifactId>fusionchartz</artifactId>
+	<version>2.2.50.FL.20110309</version>
 	<properties>
-		<zk.version>5.0.6.FL.20110201</zk.version>
+		<zk.version>5.0.6</zk.version>
 	</properties>
 	<packaging>jar</packaging>
 

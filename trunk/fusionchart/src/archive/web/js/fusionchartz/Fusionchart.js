@@ -129,7 +129,7 @@ var Fusionchart =
  *
  * @author jimmyshiau
  */
-fchart.Fusionchart = zk.$extends(zk.Widget, {
+fusionchartz.Fusionchart = zk.$extends(zk.Widget, {
 	_type: Chart.PIE,
 	_orient: 'vertical',
 	$define: {
