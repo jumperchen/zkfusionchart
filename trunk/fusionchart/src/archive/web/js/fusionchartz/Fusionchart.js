@@ -21,7 +21,7 @@
 					GANTT: 'gantt',
 					COMBINATION: 'combination'
 				},
-		_swfPath = zk.ajaxURI('/web/js/fchart/ext/Charts/', {au: true});
+		_swfPath = zk.ajaxURI('/web/js/fusionchartz/ext/Charts/', {au: true});
 		_swfPath = _swfPath.substr(0, _swfPath.lastIndexOf("/")+1);
     
 	function _updateChart(wgt) {

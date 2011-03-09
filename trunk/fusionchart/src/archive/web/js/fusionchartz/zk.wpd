@@ -11,7 +11,7 @@
 Copyright (C) 2009 Potix Corporation. All Rights Reserved.
 -->
 
-<package name="fusionchartz" language="xul/html" depends="zul.med">
+<package name="fusionchartz" language="xul/html" depends="zul">
 	<script src="ext/JSClass/FusionCharts.js"/>
 	<widget name="Fusionchart" />
 </package>
