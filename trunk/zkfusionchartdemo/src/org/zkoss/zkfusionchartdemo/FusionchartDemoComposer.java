@@ -232,7 +232,8 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 				sConfig.createSeriesProperties(0)
 					.addProperty("color", "9ACCF6").addProperty("alpha", "90");
 				sConfig.createSeriesProperties(1)
-					.addProperty("color", "82CF27").addProperty("alpha", "90");
+					.addProperty("color", "82CF27").addProperty("alpha", "90")
+					.addProperty("parentYAxis", "S");
 			}
 		};
 	}
