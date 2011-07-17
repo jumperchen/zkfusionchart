@@ -62,7 +62,7 @@ public class MilestoneConfig extends PropertiesListProperties {
 	/**
 	 * Remove the trend line on the chart.
 	 * 
-	 * @param point
+	 * @param milestone
 	 */
 	public void removeMilestone(ChartProperties milestone) {
 		taskPropMap.remove(milestone);
@@ -72,7 +72,7 @@ public class MilestoneConfig extends PropertiesListProperties {
 	/**
 	 * Remove the trend line on the chart in the specified position.
 	 * 
-	 * @param point
+	 * @param index
 	 */
 	public void removeMilestone(int index) {
 		removeMilestone(getMilestone(index));

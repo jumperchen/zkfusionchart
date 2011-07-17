@@ -227,7 +227,7 @@ public class Fusionchart extends HtmlBasedComponent implements org.zkoss.fusionc
 	
 	/**
 	 * Set the chart's subtitle.
-	 * @param title the chart's title.
+	 * @param subTitle the chart's subtitle.
 	 *
 	 */
 	public void setSubTitle(String subTitle) {

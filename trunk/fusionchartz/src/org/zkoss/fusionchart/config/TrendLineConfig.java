@@ -43,7 +43,7 @@ public class TrendLineConfig extends PropertiesListProperties {
 	/**
 	 * Remove the trend line on the chart in the specified position.
 	 * 
-	 * @param point
+	 * @param index
 	 */
 	public void removeTrendLine(int index) {
 		super.removeProperties(index);

@@ -19,7 +19,7 @@ package org.zkoss.fusionchart.api;
 /**
  * Fusionchart engine is an engine that do the fusionchart XML building.
  *
- * This interface defines the chart engine for components like {@link org.zkoss.fusionchartex.FusionchartEX}
+ * This interface defines the chart engine for components like {@link org.zkoss.fusionchart.Fusionchart}
  * use to get the value of each data and the size of the chart data.
  *
  * @author jimmyshiau

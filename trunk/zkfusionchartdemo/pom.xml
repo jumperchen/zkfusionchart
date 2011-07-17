@@ -13,6 +13,8 @@
 		<zk.version>5.0.6</zk.version>
 		<jasperreports.version>3.7.0</jasperreports.version>
 		<jfreechart.version>1.0.13</jfreechart.version>
+		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+		<packname>-2.2.0-FL-${maven.build.timestamp}</packname>
 	</properties>
 	<licenses>
 		<license>
@@ -125,6 +127,26 @@
 				<configuration>
 					<warSourceDirectory>${project.basedir}/src/archive/</warSourceDirectory>
 				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<id>demo</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>zk-fusionchartz-demo${packname}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>assembly/demo.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

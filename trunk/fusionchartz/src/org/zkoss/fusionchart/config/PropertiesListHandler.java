@@ -47,7 +47,7 @@ abstract class PropertiesListHandler extends ChartInfoNotifier {
 	/**
 	 * Returns the chart properties in the specified position.
 	 * 
-	 * @param key
+	 * @param index
 	 * @return ChartProperties
 	 */
 	protected ChartProperties getProperties(int index) {

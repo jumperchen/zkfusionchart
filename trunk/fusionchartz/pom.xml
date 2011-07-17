@@ -7,6 +7,8 @@
 	<version>2.2.0</version>
 	<properties>
 		<zk.version>5.0.6</zk.version>
+		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+		<packname>-2.2.0-FL-${maven.build.timestamp}</packname>
 	</properties>
 	<packaging>jar</packaging>
 
@@ -80,6 +82,86 @@
 						<manifestFile>${project.basedir}/src/archive/META-INF/MANIFEST.MF</manifestFile>
 					</archive>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<encoding>UTF-8</encoding>
+							<charset>UTF-8</charset>
+							<reportOutputDirectory>${project.basedir}/target/javadoc</reportOutputDirectory>
+							<destDir>fusionchartz</destDir>
+							<show>protected</show>
+						</configuration>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<id>source</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.artifactId}</finalName>
+							<descriptors>
+								<descriptor>assembly/source.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>bin</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>zk-${project.artifactId}-bin${packname}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>assembly/bin.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>bundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>assembly/source.xml</descriptor>
+								<descriptor>assembly/bundle.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>src</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>zk-${project.artifactId}-src${packname}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>assembly/src.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

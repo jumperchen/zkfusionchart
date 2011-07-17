@@ -62,7 +62,7 @@ public class GanttChartCategoriesConfig extends PropertiesListHandler {
 	/**
 	 * Remove the categories property in the specified position..
 	 * 
-	 * @param key
+	 * @param index
 	 */
 	public void removeCategoriesProperties(int index) {
 		super.removeProperties(index);
@@ -111,8 +111,9 @@ public class GanttChartCategoriesConfig extends PropertiesListHandler {
 
 		/**
 		 * Remove the category property.
-		 * 
-		 * @param key
+		 * @param name
+		 * @param start
+		 * @param end
 		 */
 		public void removeCategoryProperties(String name, Date start, Date end) {
 			List key = Arrays.asList(new Comparable[] { name, start, end });

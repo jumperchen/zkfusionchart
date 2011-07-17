@@ -41,7 +41,7 @@ public class GanttChartSeriesConfig extends PropertiesMapHandler {
 	/**
 	 * Create the series properties at the specified position.
 	 * 
-	 * @param series
+	 * @param index
 	 * @return GanttChartSeriesProperties
 	 */
 	public GanttChartSeriesProperties createSeriesProperties(int index) {
@@ -114,7 +114,7 @@ public class GanttChartSeriesConfig extends PropertiesMapHandler {
 		/**
 		 * Create the task properties.
 		 * 
-		 * @param taskName
+		 * @param index
 		 * @return ChartProperties
 		 */
 		public ChartProperties createTaskProperties(int index) {

@@ -28,7 +28,7 @@ public class ProcessConfig extends PropertiesMapProperties {
 	/**
 	 * Create the process properties.
 	 * 
-	 * @param category
+	 * @param taskName
 	 * @return ChartProperties
 	 */
 	public ChartProperties createProcessProperties(Comparable taskName) {
