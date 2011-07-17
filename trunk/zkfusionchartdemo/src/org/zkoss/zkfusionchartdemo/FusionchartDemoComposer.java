@@ -1,163 +1,94 @@
 package org.zkoss.zkfusionchartdemo;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.zkoss.zk.ui.*;
+import org.zkoss.fusionchart.Fusionchart;
+import org.zkoss.fusionchart.api.FusionchartRenderer;
+import org.zkoss.fusionchart.config.CategoriesConfig;
+import org.zkoss.fusionchart.config.CategoryChartConfig;
+import org.zkoss.fusionchart.config.GanttChartCategoriesConfig.GanttChartCategoriesProperties;
+import org.zkoss.fusionchart.config.GanttTableConfig.GanttRow;
+import org.zkoss.fusionchart.config.GanttChartConfig;
+import org.zkoss.fusionchart.config.GanttChartSeriesConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig.GanttTableColumnConfig;
+import org.zkoss.fusionchart.config.PieChartConfig;
+import org.zkoss.fusionchart.config.SeriesConfig;
+import org.zkoss.fusionchart.config.XYChartConfig;
+import org.zkoss.fusionchart.renderer.CategoryChartRenderer;
+import org.zkoss.fusionchart.renderer.GanttChartRenderer;
+import org.zkoss.fusionchart.renderer.GanttTableRenderer;
+import org.zkoss.fusionchart.renderer.PieChartRenderer;
+import org.zkoss.fusionchart.renderer.XYChartRenderer;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.event.CheckEvent;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.ForwardEvent;
 import org.zkoss.zk.ui.event.MouseEvent;
 import org.zkoss.zk.ui.util.GenericForwardComposer;
-import org.zkoss.zul.*;
+import org.zkoss.zul.Area;
+import org.zkoss.zul.CategoryModel;
+import org.zkoss.zul.Chart;
+import org.zkoss.zul.ChartModel;
+import org.zkoss.zul.GanttModel;
 import org.zkoss.zul.GanttModel.GanttTask;
-import org.zkoss.fusionchart.*;
-import org.zkoss.fusionchart.FusionchartCategoryModel.*;
-import org.zkoss.fusionchart.FusionchartGanttModel.*;
+import org.zkoss.zul.ListModel;
+import org.zkoss.zul.ListModelList;
+import org.zkoss.zul.Listbox;
+import org.zkoss.zul.PieModel;
+import org.zkoss.zul.SimpleCategoryModel;
+import org.zkoss.zul.SimplePieModel;
+import org.zkoss.zul.SimpleXYModel;
+import org.zkoss.zul.XYModel;
 
 
 
 public class FusionchartDemoComposer extends GenericForwardComposer {
-	private boolean threeD = false;
-	private boolean vertical = true;
-	private boolean stacked = false;
-
-	public boolean isThreeD() {
-		return threeD;
+	private static final Map DEFAULT_MODEL = new HashMap();
+	private static final Map DEFAULT_RENDERER = new HashMap();
+	private static final ChartModel CATE_MODEL = createCategoryModel();
+	private static final ChartModel XY_MODEL = createXYModel();
+	private static final CategoryChartRenderer CATE_RENDERER = createCategoryRenderer();
+	private static final XYChartRenderer XY_RENDERER = createXYRenderer();
+	
+	static {
+		DEFAULT_MODEL.put(Chart.PIE, createPieModel());
+		DEFAULT_MODEL.put(Chart.BAR, CATE_MODEL);
+		DEFAULT_MODEL.put(Chart.STACKED_BAR, CATE_MODEL);
+		DEFAULT_MODEL.put(Chart.LINE, XY_MODEL);
+		DEFAULT_MODEL.put(Chart.AREA, XY_MODEL);
+		DEFAULT_MODEL.put(Chart.STACKED_AREA, XY_MODEL);
+		DEFAULT_MODEL.put(Chart.GANTT, createGanttModel());
+		DEFAULT_MODEL.put(Fusionchart.COMBINATION, CATE_MODEL);
+		
+		DEFAULT_RENDERER.put(Chart.PIE, createPieRenderer());
+		DEFAULT_RENDERER.put(Chart.BAR, CATE_RENDERER);
+		DEFAULT_RENDERER.put(Chart.STACKED_BAR, CATE_RENDERER);
+		DEFAULT_RENDERER.put(Chart.LINE, XY_RENDERER);
+		DEFAULT_RENDERER.put(Chart.AREA, XY_RENDERER);
+		DEFAULT_RENDERER.put(Chart.STACKED_AREA, XY_RENDERER);
+		DEFAULT_RENDERER.put(Chart.GANTT, createGanttRenderer());
+		DEFAULT_RENDERER.put(Fusionchart.COMBINATION, createCombiCategoryRenderer());
+	}
+	
+	private Listbox typeList;
+	private Chart chart;
+	private Fusionchart fchart;
+	
+	
+	public void doAfterCompose(Component comp) throws Exception {
+		super.doAfterCompose(comp);
+		
+		if (!session.hasAttribute("attr")) {
+			session.setAttribute("attr", new AttrController());
+			
+		}
+		comp.setAttribute("attr", session.getAttribute("attr"));
 	}
 
-	public void setThreeD(boolean threeD) {
-		this.threeD = threeD;
-	}
-
-	public boolean isThreeD2() {
-		return !threeD;
-	}
-
-	public void setThreeD2(boolean threeD2) {
-		this.threeD = threeD2;
-	}
-
-	public boolean isVertical() {
-		return vertical;
-	}
-
-	public String getOrient() {
-		return vertical ? "vertical" : "horizontal";
-	}
-
-	public String getOrient2() {
-		return !vertical ? "vertical" : "horizontal";
-	}
-
-	public void setVertical(boolean vertical) {
-		this.vertical = vertical;
-	}
-
-	public boolean isStacked() {
-		return stacked;
-	}
-
-	public void setStacked(boolean stacked) {
-		this.stacked = stacked;
-	}
-
-	public String getType() {
-		return stacked ? "stacked_bar" : "bar";
-	}
-
-	public String getType2() {
-		return stacked ? "stacked_bar" : "bar";
-	}
-
-	// @Override
-	public void doBeforeComposeChildren(Component comp) throws Exception {
-		super.doBeforeComposeChildren(comp);
-		comp.setAttribute("catmodel", initCategoryModel());
-		comp.setAttribute("catmodel2", initCategoryModel2());
-		comp.setAttribute("catmodel3", initCategoryModel3());
-		comp.setAttribute("xymodel", initXYModel());
-		comp.setAttribute("piemodel", initPieModel());
-		comp.setAttribute("ganttmodel", initGanttModel());
-
-		comp.setAttribute("fcatmodel", initFCategoryModel());
-		comp.setAttribute("fcatmodel2", initFCategoryModel2());
-		comp.setAttribute("fcatmodel3", initFCategoryModel3());
-		comp.setAttribute("fxymodel", initFXYModel());
-		comp.setAttribute("fpiemodel", initFPieModel());
-		comp.setAttribute("fganttmodel", initFGanttModel());
-
-	}
-
-	private ChartModel initCategoryModel() {
-		CategoryModel catmodel = new SimpleCategoryModel();
-		catmodel.setValue("2001", "Q1", new Integer(20));
-		catmodel.setValue("2001", "Q2", new Integer(35));
-		catmodel.setValue("2001", "Q3", new Integer(40));
-		catmodel.setValue("2001", "Q4", new Integer(55));
-		catmodel.setValue("2002", "Q1", new Integer(40));
-		catmodel.setValue("2002", "Q2", new Integer(60));
-		catmodel.setValue("2002", "Q3", new Integer(70));
-		catmodel.setValue("2002", "Q4", new Integer(90));
-		return catmodel;
-	}
-
-	private ChartModel initCategoryModel2() {
-		CategoryModel catmodel = new SimpleCategoryModel();
-		catmodel.setValue("Product A", "08/01", new Integer(20));
-		catmodel.setValue("Product A", "08/02", new Integer(35));
-		catmodel.setValue("Product A", "08/03", new Integer(40));
-		catmodel.setValue("Product A", "08/04", new Integer(55));
-		catmodel.setValue("Product B", "08/01", new Integer(40));
-		catmodel.setValue("Product B", "08/02", new Integer(60));
-		catmodel.setValue("Product B", "08/03", new Integer(70));
-		catmodel.setValue("Product B", "08/04", new Integer(90));
-		return catmodel;
-	}
-
-	private ChartModel initCategoryModel3() {
-		CategoryModel catmodel = new SimpleCategoryModel();
-		FusionchartCombinSeries productA = new FusionchartCombinSeries(
-				"Product A", 128, "P");
-		FusionchartCombinSeries productB = new FusionchartCombinSeries(
-				"Product B", 128, "P");
-		FusionchartCombinSeries productC = new FusionchartCombinSeries(
-				"Product C", 128, "S");
-		catmodel.setValue(productA, "08/01", new Integer(20));
-		catmodel.setValue(productA, "08/02", new Integer(35));
-		catmodel.setValue(productA, "08/03", new Integer(40));
-		catmodel.setValue(productA, "08/04", new Integer(55));
-		catmodel.setValue(productB, "08/01", new Integer(40));
-		catmodel.setValue(productB, "08/02", new Integer(60));
-		catmodel.setValue(productB, "08/03", new Integer(70));
-		catmodel.setValue(productB, "08/04", new Integer(90));
-		catmodel.setValue(productC, "08/01", new Integer(90));
-		catmodel.setValue(productC, "08/02", new Integer(30));
-		catmodel.setValue(productC, "08/03", new Integer(60));
-		catmodel.setValue(productC, "08/04", new Integer(10));
-		return catmodel;
-	}
-
-	private XYModel initXYModel() {
-		XYModel xymodel = new SimpleXYModel();
-		xymodel.addValue("2001", new Integer(20), new Integer(120));
-		xymodel.addValue("2001", new Integer(40), new Integer(135));
-		xymodel.addValue("2001", new Integer(60), new Integer(140));
-		xymodel.addValue("2001", new Integer(80), new Integer(160));
-		xymodel.addValue("2001", new Integer(25), new Integer(120));
-		xymodel.addValue("2001", new Integer(75), new Integer(135));
-		xymodel.addValue("2001", new Integer(65), new Integer(140));
-		xymodel.addValue("2001", new Integer(85), new Integer(160));
-		xymodel.addValue("2002", new Integer(30), new Integer(120));
-		xymodel.addValue("2002", new Integer(31), new Integer(135));
-		xymodel.addValue("2002", new Integer(32), new Integer(140));
-		xymodel.addValue("2002", new Integer(90), new Integer(160));
-		xymodel.addValue("2002", new Integer(35), new Integer(120));
-		xymodel.addValue("2002", new Integer(55), new Integer(135));
-		xymodel.addValue("2002", new Integer(75), new Integer(140));
-		xymodel.addValue("2002", new Integer(80), new Integer(160));
-		return xymodel;
-	}
-
-	private PieModel initPieModel() {
+	private static PieModel createPieModel() {
 		PieModel piemodel = new SimplePieModel();
 		piemodel.setValue("C/C++", new Double(12.5));
 		piemodel.setValue("Java", new Double(50.2));
@@ -165,211 +96,268 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 		piemodel.setValue("PHP", new Double(15.5));
 		return piemodel;
 	}
+	
+	private static CategoryModel createCategoryModel() {
+		 CategoryModel catmodel = new SimpleCategoryModel();
+	        catmodel.setValue("2001", "Q1", new Integer(20));
+	        catmodel.setValue("2001", "Q2", new Integer(35));
+	        catmodel.setValue("2001", "Q3", new Integer(40));
+	        catmodel.setValue("2001", "Q4", new Integer(55));
+	        catmodel.setValue("2002", "Q1", new Integer(40));
+	        catmodel.setValue("2002", "Q2", new Integer(60));
+	        catmodel.setValue("2002", "Q3", new Integer(70));
+	        catmodel.setValue("2002", "Q4", new Integer(90));
+		return catmodel;
+	}
 
-	private GanttModel initGanttModel() {
+	private static XYModel createXYModel() {
+		XYModel xymodel = new SimpleXYModel();
+		xymodel.addValue("2001", new Integer(10), new Integer(1459));
+		xymodel.addValue("2001", new Integer(20), new Integer(1423));
+		xymodel.addValue("2001", new Integer(30), new Integer(1382));
+		xymodel.addValue("2001", new Integer(40), new Integer(1356));
+		xymodel.addValue("2001", new Integer(50), new Integer(1310));
+		xymodel.addValue("2001", new Integer(60), new Integer(1282));
+		xymodel.addValue("2001", new Integer(70), new Integer(1247));
+		xymodel.addValue("2001", new Integer(80), new Integer(1182));
+		
+		xymodel.addValue("2002", new Integer(10), new Integer(1188));
+		xymodel.addValue("2002", new Integer(20), new Integer(1189));
+		xymodel.addValue("2002", new Integer(30), new Integer(1177));
+		xymodel.addValue("2002", new Integer(40), new Integer(1175));
+		xymodel.addValue("2002", new Integer(50), new Integer(1210));
+		xymodel.addValue("2002", new Integer(60), new Integer(1280));
+		xymodel.addValue("2002", new Integer(70), new Integer(1390));
+		xymodel.addValue("2002", new Integer(80), new Integer(1524));
+		return xymodel;
+	}
+
+	private static GanttModel createGanttModel() {
 		GanttModel ganttmodel = new GanttModel();
 
-		String scheduled = "Scheduled";
-		String actual = "Actual";
-
-		ganttmodel.addValue(
-				scheduled,
-				new GanttTask("Write Proposal", date(2008, 4, 1), date(2008, 4,
-						5), 0.0));
-		ganttmodel.addValue(scheduled, new GanttTask("Requirements Analysis",
+		ganttmodel.addValue("Scheduled", new GanttTask("Write Proposal", 
+				date(2008, 4, 1), date(2008, 4, 5), 0.0));
+		ganttmodel.addValue("Scheduled", new GanttTask("Requirements Analysis",
 				date(2008, 4, 10), date(2008, 5, 5), 0.0));
-		ganttmodel.addValue(
-				scheduled,
-				new GanttTask("Design Phase", date(2008, 5, 6), date(2008, 5,
-						30), 0.0));
-		ganttmodel.addValue(scheduled, new GanttTask("Alpha Implementation",
+		ganttmodel.addValue("Scheduled", new GanttTask("Design Phase", 
+				date(2008, 5, 6), date(2008, 5, 30), 0.0));
+		ganttmodel.addValue("Scheduled", new GanttTask("Alpha Implementation",
 				date(2008, 6, 3), date(2008, 7, 31), 0.0));
 
-		ganttmodel.addValue(
-				actual,
-				new GanttTask("Write Proposal", date(2008, 4, 1), date(2008, 4,
-						3), 0.0));
-		ganttmodel.addValue(actual, new GanttTask("Requirements Analysis",
-				date(2008, 4, 10), date(2008, 5, 15), 0.0));
-		ganttmodel.addValue(
-				actual,
-				new GanttTask("Design Phase", date(2008, 5, 15), date(2008, 6,
-						17), 0.0));
-		ganttmodel.addValue(
-				actual,
-				new GanttTask("Alpha Implementation", date(2008, 7, 1), date(
-						2008, 9, 12), 0.0));
+		ganttmodel.addValue("Actual", new GanttTask("Write Proposal", 
+				date(2008, 4, 1), date(2008, 4, 3), 0.0));
+		ganttmodel.addValue("Actual", new GanttTask("Requirements Analysis", 
+						date(2008, 4, 10), date(2008, 5, 15), 0.0));
+		ganttmodel.addValue("Actual", new GanttTask("Design Phase", 
+				date(2008, 5, 15), date(2008, 6, 17), 0.0));
+		ganttmodel.addValue("Actual", new GanttTask("Alpha Implementation", 
+				date(2008, 7, 1), date(2008, 9, 12), 0.0));
+		
 		return ganttmodel;
 	}
 
-	public Date date(int year, int month, int day) {
+	private static Date date(int year, int month, int day) {
 		final java.util.Calendar calendar = java.util.Calendar.getInstance();
 		calendar.set(year, month - 1, day);
 		return calendar.getTime();
 	}
 
-	private ChartModel initFCategoryModel() {
-		FusionchartCategoryModel catmodel = new FusionchartCategoryModel();
-
-		FusionchartSeries y2001 = new FusionchartSeries("2001", null, 100, true);
-		FusionchartSeries y2002 = new FusionchartSeries("2002", 50);
-
-		FusionchartCategory Q1 = new FusionchartCategory("Q1");
-		FusionchartCategory Q2 = new FusionchartCategory("Q2", "Q3 ....", false);
-		FusionchartCategory Q3 = new FusionchartCategory("Q3", "Q3 ....");
-		FusionchartCategory Q4 = new FusionchartCategory("Q4", "Q4 good");
-
-		catmodel.setValue(y2001, Q1, new Integer(20), "#00FF00", null, 150);
-		catmodel.setValue(y2001, Q2, new Integer(35));
-		catmodel.setValue(y2001, Q3, new Integer(40));
-		catmodel.setValue(y2001, Q4, new Integer(55), "#885022", null, 120);
-		catmodel.setValue(y2002, Q1, new Integer(40));
-		catmodel.setValue(y2002, Q2, new Integer(60));
-		catmodel.setValue(y2002, Q3, new Integer(70), "#EDEF0E", null, 70);
-		catmodel.setValue(y2002, Q4, new Integer(90));
-		return catmodel;
+	
+	
+	private static PieChartRenderer createPieRenderer() {
+		return new PieChartRenderer () {
+			public void defineChartConfig(PieChartConfig chartConfig) {
+				chartConfig.setPieFillAlpha(95);
+				chartConfig.setAnimation(false);
+				chartConfig.addProperty("pieBorderColor", "FFFFFF");
+				
+				CategoriesConfig cConfig = chartConfig.getCategoryConfig();
+				cConfig.createCategoryProperties("C/C++").addProperty("color", "AFD8F8");
+				cConfig.createCategoryProperties("Java")
+					.addProperty("color", "8BBA00").addProperty("isSliced", "1");
+				cConfig.createCategoryProperties(2).addProperty("color", "F6BD0F");
+				cConfig.createCategoryProperties(3).addProperty("color", "A66EDD");
+			}
+		};
 	}
-
-	private ChartModel initFCategoryModel2() {
-		FusionchartCategoryModel catmodel = new FusionchartCategoryModel();
-
-		FusionchartAreaSeries productA = new FusionchartAreaSeries("Product A",
-				"#0EEF2C", 100, true, true, new Integer(10), "#EF0E6C");
-		FusionchartAreaSeries productB = new FusionchartAreaSeries("Product B",
-				50);
-
-		FusionchartCategory D1 = new FusionchartCategory("08/01");
-		FusionchartCategory D2 = new FusionchartCategory("08/02", "08/02 ....",
-				false);
-		FusionchartCategory D3 = new FusionchartCategory("08/03", "08/03 ....");
-		FusionchartCategory D4 = new FusionchartCategory("08/04", "08/04 good");
-
-		catmodel.setValue(productA, D1, new Integer(20), "#00FF00", null, 150);
-		catmodel.setValue(productA, D2, new Integer(40));
-		catmodel.setValue(productA, D3, new Integer(35));
-		catmodel.setValue(productA, D4, new Integer(55), "#885022", null, 120);
-		catmodel.setValue(productB, D1, new Integer(40));
-		catmodel.setValue(productB, D2, new Integer(60));
-		catmodel.setValue(productB, D3, new Integer(70));
-		catmodel.setValue(productB, D4, new Integer(90), "#EDEF0E", null, 70);
-		return catmodel;
+	
+	private static CategoryChartRenderer createCategoryRenderer() {
+		return new CategoryChartRenderer() {
+			public void defineChartConfig(CategoryChartConfig chartConfig) {
+				chartConfig.setAnimation(false);
+				chartConfig.addProperty("rotateNames", "1");
+				
+				SeriesConfig sConfig = chartConfig.getSeriesConfig();
+				
+				sConfig.createSeriesProperties(0)
+					.addProperty("color", "AFD8F8").addProperty("parentYAxis", "P");
+				sConfig.createSeriesProperties(1)
+					.addProperty("color", "FF8000").addProperty("parentYAxis", "S")
+					.addProperty("anchorBorderColor", "FF8000")
+					.addProperty("lineThickness", "4");
+			}
+		};
 	}
-
-	private ChartModel initFCategoryModel3() {
-		FusionchartCategoryModel catmodel = new FusionchartCategoryModel();
-		FusionchartCombinSeries productA = new FusionchartCombinSeries(
-				"Product A", 128, "P");
-
-		FusionchartCombinSeries productB = new FusionchartCombinSeries(
-				"Product B", 128, "P");
-
-		AnchorProperty anchor = new AnchorProperty(true, new Integer(15),
-				new Integer(10), "#00FFFA", new Integer(10), "#C300FF", 150,
-				180);
-
-		FusionchartCombinSeries productC = new FusionchartCombinSeries(
-				"Product B", "#FF7200", 200, true, new Integer(5),
-				anchor, "S", "$", " US");
-
-		FusionchartCategory D1 = new FusionchartCategory("Q1");
-		FusionchartCategory D2 = new FusionchartCategory("Q2", "Q3 ....", false);
-		FusionchartCategory D3 = new FusionchartCategory("Q3", "Q3 ....");
-		FusionchartCategory D4 = new FusionchartCategory("Q4", "Q4 good");
-
-		catmodel.setValue(productA, D1, new Integer(20));
-		catmodel.setValue(productA, D2, new Integer(35), "#00FF00", null, 150);
-		catmodel.setValue(productA, D3, new Integer(40), "#885022", null, 120);
-		catmodel.setValue(productA, D4, new Integer(55));
-		catmodel.setValue(productB, D1, new Integer(40));
-		catmodel.setValue(productB, D2, new Integer(60));
-		catmodel.setValue(productB, D3, new Integer(70), "#EDEF0E", null, 70);
-		catmodel.setValue(productB, D4, new Integer(90));
-		catmodel.setValue(productC, D1, new Integer(90));
-		catmodel.setValue(productC, D2, new Integer(30));
-		catmodel.setValue(productC, D3, new Integer(60));
-		catmodel.setValue(productC, D4, new Integer(10));
-		return catmodel;
+	
+	private static XYChartRenderer createXYRenderer() {
+		return new XYChartRenderer() {
+			public void defineChartConfig(XYChartConfig chartConfig) {
+				
+				SeriesConfig sConfig = chartConfig.getSeriesConfig();
+				
+				sConfig.createSeriesProperties(0)
+					.addProperty("color", "0099FF")
+					.addProperty("alpha", "100")
+					.addProperty("anchorAlpha", "0")
+					.addProperty("lineThickness", "2");
+				
+				sConfig.createSeriesProperties(1)
+					.addProperty("color", "FF8000")
+					.addProperty("alpha", "80")
+					.addProperty("showAnchors", "0");
+			}
+		};
 	}
-
-	private XYModel initFXYModel() {
-		FusionchartXYModel xymodel = new FusionchartXYModel();
-
-		AnchorProperty anchor = new AnchorProperty(true, new Integer(8), new Integer(3), "#00FFFA", new Integer(3),
-				"#C300FF", 150, 180);
-
-		FusionchartLineSeries y2001 = new FusionchartLineSeries("2001",
-				"#FF00FA", 60, false, new Integer(2), null);
-		FusionchartLineSeries y2002 = new FusionchartLineSeries("2002",
-				"#00FF3A", 60, true, new Integer(4), anchor);
-
-		xymodel.addValue(y2001, new Integer(20), new Integer(120), null, 50, -1);
-		xymodel.addValue(y2001, new Integer(40), new Integer(135));
-		xymodel.addValue(y2001, new Integer(60), new Integer(140));
-		xymodel.addValue(y2001, new Integer(80), new Integer(160));
-		xymodel.addValue(y2001, new Integer(25), new Integer(120));
-		xymodel.addValue(y2001, new Integer(75), new Integer(135), null, 100,
-				-1);
-		xymodel.addValue(y2001, new Integer(65), new Integer(140));
-		xymodel.addValue(y2001, new Integer(85), new Integer(160));
-		xymodel.addValue(y2002, new Integer(30), new Integer(120));
-		xymodel.addValue(y2002, new Integer(31), new Integer(135));
-		xymodel.addValue(y2002, new Integer(32), new Integer(140));
-		xymodel.addValue(y2002, new Integer(90), new Integer(160));
-		xymodel.addValue(y2002, new Integer(35), new Integer(120), null, 200,
-				-1);
-		xymodel.addValue(y2002, new Integer(55), new Integer(135));
-		xymodel.addValue(y2002, new Integer(75), new Integer(140));
-		xymodel.addValue(y2002, new Integer(80), new Integer(160));
-		return xymodel;
+	
+	private static CategoryChartRenderer createCombiCategoryRenderer() {
+		return new CategoryChartRenderer() {
+			public void defineChartConfig(CategoryChartConfig chartConfig) {
+				chartConfig.setAnimation(false);
+				chartConfig.setCanvasBgColor("F6DFD9");
+				chartConfig.addProperty("canvasBaseColor", "FE6E54");
+				chartConfig.addProperty("numberPrefix", "$");
+				
+				SeriesConfig sConfig = chartConfig.getSeriesConfig();
+				
+				sConfig.createSeriesProperties(0)
+					.addProperty("color", "9ACCF6").addProperty("alpha", "90");
+				sConfig.createSeriesProperties(1)
+					.addProperty("color", "82CF27").addProperty("alpha", "90");
+			}
+		};
 	}
-
-	private PieModel initFPieModel() {
-		FusionchartPieModel piemodel = new FusionchartPieModel();
-		piemodel.setValue("C/C++", new Double(12.5), "#EFDB00", "C/C++....",
-				60, null, false);
-		piemodel.setValue("Java", new Double(50.2), "#DF0D3D", "Java  good!!!",
-				80, null, true);
-		piemodel.setValue("VB", new Double(20.5), "#5F7F0F", "VB....", 100,
-				null, false);
-		piemodel.setValue("PHP", new Double(15.5), "#EF6B00", "PHP....", 120,
-				null, false);
-		return piemodel;
+	
+	private static GanttChartRenderer createGanttRenderer() {
+		return new GanttChartRenderer() {
+			public void defineChartProperty(GanttChartConfig chartConfig) {
+				chartConfig.addProperty("canvasBorderColor", "024455")
+					.addProperty("canvasBorderThickness", "0");
+				
+				GanttChartCategoriesProperties cProps = 
+					chartConfig.getCategoriesConfig().createCategoriesProperties();
+				cProps.addProperty("bgColor", "4567aa");
+				
+				cProps.createCategoryProperties(
+						"Months", date(2008, 4, 1), date(2008, 9, 30))
+					.addProperty("align", "center")
+					.addProperty("font", "Verdana")
+					.addProperty("fontColor", "ffffff")
+					.addProperty("isBold", "1")
+					.addProperty("fontSize", "16");
+				
+				chartConfig.getHeaderConfig()
+					.addProperty("bgColor", "ffffff")
+					.addProperty("fontColor", "1288dd")
+					.addProperty("fontSize", "10");
+				
+				chartConfig.getProcessConfig()
+					.addProperty("bgColor", "4567aa")
+					.addProperty("fontColor", "ffffff")
+					.addProperty("fontSize", "10")
+					.addProperty("headerVAlign", "right")
+					.addProperty("headerbgColor", "4567aa")
+					.addProperty("headerFontColor", "ffffff")
+					.addProperty("headerFontSize", "16")
+					.addProperty("width", "80")
+					.addProperty("align", "left");
+				
+				chartConfig.getTasksProperties().addProperty("width", "10");
+				
+				GanttChartSeriesConfig sConfig = chartConfig.getSeriesConfig();
+				sConfig.createSeriesProperties("Scheduled")
+					.addProperty("color", "4567aa");
+				sConfig.createSeriesProperties("Actual")
+					.addProperty("color", "cccccc");
+			}
+		};
 	}
-
-	private GanttModel initFGanttModel() {
-		FusionchartGanttModel ganttmodel = new FusionchartGanttModel();
-
-		FusionchartSeries scheduled = new FusionchartGanttSeries("Scheduled",
-				"#885022", 100, true, null, new Border("#FF0000", 5, 200));
-		FusionchartSeries actual = new FusionchartGanttSeries("Actual", true);
-
-		ganttmodel.addValue(scheduled, new FusionchartGanttTask(
-				"Write Proposal", date(2008, 4, 1), date(2008, 4, 5), 0.0));
-		ganttmodel.addValue(scheduled, new FusionchartGanttTask(
-				"Requirements Analysis", date(2008, 4, 10), date(2008, 5, 5),
-				0.0));
-		ganttmodel.addValue(scheduled, new FusionchartGanttTask("Design Phase",
-				date(2008, 5, 6), date(2008, 5, 30), 0.0));
-		ganttmodel.addValue(scheduled, new FusionchartGanttTask(
-				"Alpha Implementation", date(2008, 6, 3), date(2008, 7, 31),
-				0.0));
-
-		ganttmodel.addValue(actual, new FusionchartGanttTask("Write Proposal",
-				date(2008, 4, 1), date(2008, 4, 3), "#00FF00", 150,
-				"Write Proposal.....", null, true, new Integer(10), null, new Border(
-						"#00FF00", 2, 180)));
-		ganttmodel.addValue(actual, new FusionchartGanttTask(
-				"Requirements Analysis", date(2008, 4, 10), date(2008, 5, 15),
-				"#DF0D3D"));
-		ganttmodel.addValue(actual, new FusionchartGanttTask("Design Phase",
-				date(2008, 5, 15), date(2008, 6, 17)));
-		ganttmodel.addValue(actual, new FusionchartGanttTask(
-				"Alpha Implementation", date(2008, 7, 1), date(2008, 9, 12),
-				"#EDEF0E", 90, "Alpha Implementation.....", null, true, new Integer(15),
-				null, new Border("#0000FF", 3, 120), true, false, false));
-		return ganttmodel;
+	
+	
+	
+	private static ListModel createGanttTableModel() {
+		ListModelList model = new ListModelList();
+		model.add(new String[]{"150","$400"});
+		model.add(new String[]{"340","$890"});
+		model.add(new String[]{"60","$1234"});
+		model.add(new String[]{"20","$230"});
+		return model;
 	}
-
+	
+	private static GanttTableRenderer createGanttTableRenderer() {
+		return new GanttTableRenderer() {
+			public void render(GanttRow row, Object data) throws Exception {
+				String[] s = (String[])data;
+				row.createLabel(s[0]);
+				row.createLabel(s[1]);
+			}
+			public void defineTableProperty(GanttTableConfig tableConfig) {
+				tableConfig.addProperty("nameAlign", "left")
+					.addProperty("fontColor", "000000")
+					.addProperty("fontSize", "10")
+					.addProperty("headerBgColor", "00ffff")
+					.addProperty("headerFontColor", "4567aa")
+					.addProperty("headerFontSize", "11")
+					.addProperty("vAlign", "right")
+					.addProperty("align", "left");
+				
+				GanttTableColumnConfig cConfig = tableConfig.getColumnConfig();
+				cConfig.createColumnProperties(0)
+					.addProperty("headerText", "Dur")
+					.addProperty("align", "center")
+					.addProperty("headerfontcolor", "ffffff")
+					.addProperty("headerbgColor", "4567aa")
+					.addProperty("bgColor", "eeeeee");
+				
+				cConfig.createColumnProperties(1)
+					.addProperty("headerText", "Cost")
+					.addProperty("align", "right")
+					.addProperty("headerfontcolor", "ffffff")
+					.addProperty("headerbgColor", "4567aa")
+					.addProperty("bgColor", "4567aa")
+					.addProperty("bgAlpha", "25");
+				
+			}
+		};
+	}
+	
+	
+	
+	public void onSelect$typeList() {
+		if (Chart.GANTT.equals(typeList.getSelectedItem().getValue())) {
+			chart.setWidth("750");
+			chart.setHeight("450");
+			fchart.setWidth("750");
+			fchart.setHeight("450");
+		} else {
+			chart.setWidth("500");
+			chart.setHeight("250");
+			fchart.setWidth("500");
+			fchart.setHeight("250");
+		}
+	}
+	
+	public void onShowTable(ForwardEvent evt) {
+		CheckEvent event = (CheckEvent) evt.getOrigin();
+		if (event.isChecked()) {
+			fchart.setTableModel(createGanttTableModel());
+			fchart.setTableRenderer(createGanttTableRenderer());
+		} else {
+			fchart.setTableModel(null);
+			fchart.setTableRenderer(null);
+		}
+		
+	}
+	
 	public void onChartClick(ForwardEvent evt) {
 		doCategoryChartClick(evt);
 	}
@@ -406,4 +394,83 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 
 		System.out.println();
 	}
+	
+	public class AttrController {
+		private boolean threeD = false;
+		private String orient = "vertical";
+		private String type = "pie";
+		private boolean stacked = false;
+		private ChartModel model;
+		private boolean useRenderer = false;
+		private FusionchartRenderer renderer;
+
+		public AttrController() {
+			super();
+			this.model = (ChartModel) DEFAULT_MODEL.get(type);
+		}
+
+		public boolean isThreeD() {
+			return threeD;
+		}
+
+		public void setThreeD(boolean threeD) {
+			this.threeD = threeD;
+		}
+
+		public void setOrient(String orient) {
+			//"vertical" : "horizontal"
+			this.orient = orient;
+		}
+		
+		public String getOrient() {
+			return orient;
+		}
+
+		public boolean isStacked() {
+			return stacked;
+		}
+
+		public void setStacked(boolean stacked) {
+			this.stacked = stacked;
+		}
+
+		public void setType(String type) {
+			this.type = type;
+			setModel((ChartModel) DEFAULT_MODEL.get(type));
+			
+			if (useRenderer)
+				setRenderer((FusionchartRenderer) DEFAULT_RENDERER.get(type));
+		}
+		
+		public String getType() {
+			return type;
+		}
+		
+		public void setModel(ChartModel model) {
+			this.model = model;
+		}
+		
+		public ChartModel getModel() {
+			return model;
+		}
+		
+		public void setUseRenderer(boolean useRenderer) {
+			this.useRenderer = useRenderer;
+			setRenderer(useRenderer ? 
+					(FusionchartRenderer) DEFAULT_RENDERER.get(type): null);
+		}
+		
+		public boolean isUseRenderer() {
+			return useRenderer;
+		}
+		
+		public void setRenderer(FusionchartRenderer renderer) {
+			this.renderer = renderer;
+		}
+		
+		public FusionchartRenderer getRenderer() {
+			return renderer;
+		}
+	}
+	
 }

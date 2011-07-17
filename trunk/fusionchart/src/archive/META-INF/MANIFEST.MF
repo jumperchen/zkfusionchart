@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Specification-Title: The ZK Fusionchart Components
-Specification-Version: 2.2.50
+Specification-Version: 2.2.0
 Specification-Vendor: Potix Corporation
 Implementation-Title: org.zkoss.fusionchart
 Implementation-URL: http://www.zkoss.org/fusionchart
-Implementation-Version: 2.2.50
+Implementation-Version: 2.2.0
 Implementation-Vendor: Potix Corporation

@@ -9,7 +9,7 @@
 	<description>The ZK Fusionchart Demo</description>
 	<url>http://www.zkoss.org/product/zkfusionchart.dsp</url>
 	<properties>
-		<fusionchart.version>2.2.50.FL.20110309</fusionchart.version>
+		<fusionchart.version>2.2.0</fusionchart.version>
 		<zk.version>5.0.6</zk.version>
 		<jasperreports.version>3.7.0</jasperreports.version>
 		<jfreechart.version>1.0.13</jfreechart.version>
@@ -89,7 +89,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.zkoss.zk</groupId>
-			<artifactId>zul</artifactId>
+			<artifactId>zkex</artifactId>
 			<version>${zk.version}</version>
 		</dependency>
 		<dependency>

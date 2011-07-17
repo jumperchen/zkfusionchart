@@ -1,39 +1,45 @@
 <?init class="org.zkoss.zkplus.databind.AnnotateDataBinderInit" ?>
 <zk>
-	<style>
-		.textDiv { 
-			height: 250px; 
-			line-height: 250px; 
-			text-align: center; 
-			vertical-align: middle; 
-			width: 500px; 
-		}
-	</style>
 	<window id="win" apply="org.zkoss.zkfusionchartdemo.FusionchartDemoComposer" height="100%">
 		<borderlayout height="100%">
-			<north height="50px">
+			<north vflex="min">
 				<panel border="normal" framable="true" height="100%">
 					<panelchildren>
 						<checkbox label="threeD"
-							checked="@{win$composer.threeD}" />
-						<checkbox label="vertical"
-							checked="@{win$composer.vertical}" />
-						<checkbox label="stacked"
-							checked="@{win$composer.stacked}" />
+							checked="@{attr.threeD}" />
+						<checkbox label="use renderer"
+							checked="@{attr.useRenderer}" />
+						<radiogroup
+							selectedIndex="@{attr.orient, converter='org.zkoss.zkfusionchartdemo.OrientConverter'}">
+							<radio label="vertical"/>
+							<radio label="horizontal"/>
+						</radiogroup>
+						<checkbox label="Show Gantt Chart Table"  forward="onCheck=onShowTable"/>
 					</panelchildren>
 				</panel>
 			</north>
+			<west size="150px">
+				<listbox id="typeList" selectedIndex="@{attr.type, converter='org.zkoss.zkfusionchartdemo.ChartTypeConverter'}">
+					<listitem label="Pie Chart" value="pie"/>
+					<listitem label="Bar Chart" value="bar"/>
+					<listitem label="Stacked Bar Chart" value="stacked_bar"/>
+					<listitem label="Line Chart" value="line"/>
+					<listitem label="Area Chart" value="area"/>
+					<listitem label="Stacked Area Chart" value="stacked_area"/>
+					<listitem label="Gantt Chart" value="gantt"/>
+					<listitem label="Combination Chart" value="combination"/>
+				</listbox>
+			</west>
 			<center autoscroll="true">
-				<tabbox>
-					<tabs>
-						<tab label="chart model" />
-						<tab label="fusionchart model" />
-					</tabs>
-					<tabpanels>
-						<tabpanel fulfill="=chartModelDemo.zul"/>
-						<tabpanel fulfill="=fusionchartModelDemo.zul"/>
-					</tabpanels>
-				</tabbox>
+				<vlayout>
+					<chart id="chart" title="@{attr.type}" width="500" height="250" type="@{attr.type}"
+						model="@{attr.model}" orient="@{attr.orient}" threeD="@{attr.threeD}"
+						onClick="doClick(event)" />
+					<fusionchart id="fchart" title="@{attr.type}" width="500" height="250" type="@{attr.type}"
+						model="@{attr.model}" orient="@{attr.orient}" threeD="@{attr.threeD}"
+						chartRenderer="@{attr.renderer}"
+						onClick="doClick(event)" />
+				</vlayout>
 			</center>
 		</borderlayout>
 	</window>

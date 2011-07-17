@@ -18,12 +18,12 @@ package org.zkoss.fusionchart;
 
 /**
  * Specified this in lang.xml, such that ZK knows what lang-addon.xml is associated
- * with ckez.
+ * with fusionchartz.
  * 
  * @author jimmy
  */
 public class Version {
 	/** Returns the version UID.
 	 */
-	public static final String UID = "2.2.50-FL";
+	public static final String UID = "2.2.0";
 }

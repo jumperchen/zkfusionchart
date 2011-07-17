@@ -12,62 +12,22 @@
 (function(){
 	
 	var Chart = {
-					PIE: 'pie',
-					BAR: 'bar',
-					LINE: 'line',
-					AREA: 'area',
-					STACKED_BAR: 'stacked_bar',
-					STACKED_AREA: 'stacked_area',
-					GANTT: 'gantt',
-					COMBINATION: 'combination'
-				},
+			PIE: 'pie',
+			BAR: 'bar',
+			LINE: 'line',
+			AREA: 'area',
+			STACKED_BAR: 'stacked_bar',
+			STACKED_AREA: 'stacked_area',
+			GANTT: 'gantt',
+			COMBINATION: 'combination'
+		},
 		_swfPath = zk.ajaxURI('/web/js/fusionchartz/ext/Charts/', {au: true});
-		_swfPath = _swfPath.substr(0, _swfPath.lastIndexOf("/")+1);
+	_swfPath = _swfPath.substr(0, _swfPath.lastIndexOf("/")+1);
     
-	function _updateChart(wgt) {
-		var fusionChartXML;
-		if (!(fusionChartXML = wgt._fusionChartXML) || !wgt.isRealVisible())
-			return;
-		updateChartXML('Chart_' + wgt.uuid, fusionChartXML); 
-		wgt._shallUpdate = false;
-	}
-	
-	function _createChart(wgt) {
-		var fusionChartXML;
-		if (!(fusionChartXML = wgt._fusionChartXML) || !wgt.isRealVisible())
-			return;
-			
-		var chart = new FusionCharts(_swfPath + _getSwf(wgt), 
-						'Chart_' + wgt.uuid, zk.parseInt(wgt._width), zk.parseInt(wgt._height));
-		chart.setDataXML(fusionChartXML);
-		chart.setTransparent(true);
-		chart.render(wgt.$n());
-		wgt._fusionchart = chart;
-		wgt._shallRedraw = false;
-	}
-	
-	function _initChart(wgt) {
-		if (wgt.desktop) {
-			if (wgt._fusionchart)
-				_updateChart(wgt)
-			else
-				_createChart(wgt);
-		}
-	}
-	
-	function _redraw(wgt) {
-		if (wgt._shallRedraw) {
-			if (wgt._shallUpdate)
-				_initChart(wgt);
-			else _createChart(wgt);
-		}
-	}
-	
 	function _getSwf(wgt) {
 		var type = wgt._type,
 			threeD = wgt._threeD,
-			orient = wgt._orient,
-			isChartTypeNoMatch;
+			orient = wgt._orient;
 			
 		switch(type) {
 			case Chart.PIE:
@@ -89,7 +49,7 @@
 				break;
 			case Chart.STACKED_BAR:
 				if (orient == 'vertical')
-					return wgt._threeD ? 'FCF_StackedColumn3D.swf': 'FCF_StackedColumn2D.swf';
+					return threeD ? 'FCF_StackedColumn3D.swf': 'FCF_StackedColumn2D.swf';
 				else if (orient == 'horizontal' && !_validateThreeD(type, threeD))
 			    	return 'FCF_StackedBar2D.swf';
 				break;
@@ -99,7 +59,7 @@
 				break;
 			case Chart.COMBINATION:
 				if (orient == 'vertical')
-					return wgt._threeD ? 'FCF_MSColumn3DLineDY.swf': 'FCF_MSColumn2DLineDY.swf';
+					return threeD ? 'FCF_MSColumn3DLineDY.swf': 'FCF_MSColumn2DLineDY.swf';
 				else if (orient == 'horizontal')
 			    	jq.alert('Unsupported chart type yet: ' + type + ' in horizontal.',
 						{icon: 'ERROR'});
@@ -121,6 +81,61 @@
 		}
 	}
 	
+	function _updateChart(wgt) {
+		var dataXML, chart;
+		if (!(dataXML = wgt._dataXML) || !wgt.isRealVisible())
+			return;
+		if (chart = wgt._fusionchart) {
+//			chart.setDataXML(dataXML); 
+			updateChartXML('Chart_' + wgt.uuid, dataXML);
+			wgt._shallUpdate = false;
+		}
+	}
+	
+	function _createChart(wgt) {
+		var dataXML, dataXMLPath;
+		if (!((dataXML = wgt._dataXML) || (dataXMLPath = wgt._dataXMLPath)) 
+			|| !wgt.isRealVisible())
+			return;
+			
+		var chart = new FusionCharts(_swfPath + _getSwf(wgt), 
+						'Chart_' + wgt.uuid, zk.parseInt(wgt._intWidth), zk.parseInt(wgt._intHeight));
+		
+		if (dataXML)
+			chart.setDataXML(dataXML);
+		else if (dataXMLPath) chart.setDataURL(dataXMLPath);
+		
+		chart.setTransparent(true);
+		chart.render(wgt.$n());
+		wgt._fusionchart = chart;
+		wgt._shallRedraw = wgt._shallUpdate = false;
+	}
+	
+	function _initChart(wgt) {
+		if (wgt.desktop) {
+			if (wgt._fusionchart)
+				_updateChart(wgt);
+			else
+				_createChart(wgt);
+		}
+	}
+	
+	function _redraw(wgt) {
+		if (wgt._shallRedraw) {
+			if (wgt._shallUpdate)
+				_initChart(wgt);
+			else _createChart(wgt);
+		}
+	}
+	
+	function _syncChart(wgt) {
+		if (!wgt.desktop) return;
+		
+		if (wgt._shallRedraw)
+			_createChart(wgt);
+		else _updateChart(wgt);
+	}
+	
 	
 var Fusionchart =
 /**
@@ -130,9 +145,16 @@ var Fusionchart =
  * @author jimmyshiau
  */
 fusionchartz.Fusionchart = zk.$extends(zk.Widget, {
+	_intWidth: 400,
+	_intHeight: 200,
 	_type: Chart.PIE,
 	_orient: 'vertical',
 	$define: {
+		intWidth: zkf = function () {
+			this._shallUpdate = true;
+			this._shallRedraw = true;
+		},
+		intHeight: zkf,
 		/**
 		 * Get the chart's type.
 		 * @return String
@@ -142,9 +164,7 @@ fusionchartz.Fusionchart = zk.$extends(zk.Widget, {
 		 * <p>Default: pie.
 		 * @param String type
 		 */
-	    type: zkf = function () {
-			this._shallRedraw = true;
-		},
+	    type: zkf,
 		/**
 		 * Whether a 3d chart.
 		 * @return boolean
@@ -171,33 +191,48 @@ fusionchartz.Fusionchart = zk.$extends(zk.Widget, {
 		 * Sets the XML string for render the chart data.
 		 * @param String XMLString
 		 */
-		fusionChartXML: function () {
-			this._shallRedraw = true;
+		dataXML: function () {
 			this._shallUpdate = true;
-			_redraw(this);
+		},
+		/**
+		 * Get the url of the chart data .xml file. See Fusionchart Free's 
+		 * <a href="http://www.fusioncharts.com/free/docs/">
+		 * FusionCharts Free Documentation</a> for details.
+		 */
+		/**
+		 * Set the url of the chart data .xml file. See Fusionchart Free's 
+		 * <a href="http://www.fusioncharts.com/free/docs/">
+		 * FusionCharts Free Documentation</a> for details.
+		 * @param url the url path for the data xml path
+		 */
+		dataXMLPath: function () {
+//			this._shallRedraw = true;
+//			this._shallUpdate = true;
+//			_redraw(this);
 		}
 	},
 	
 	bind_: function() {
 		this.$supers(Fusionchart, 'bind_', arguments);
 		zWatch.listen({onShow: this, onResponse: this});
-		this._shallRedraw = true
-		_redraw(this);
+		_createChart(this);
 	},
 	
 	unbind_: function () {
-		this._fusionchart = null;
+		this._fusionchart = this._shallRedraw = this._shallUpdate = null;
 		zWatch.unlisten({onShow: this, onResponse: this});
 		this.$supers(Fusionchart, 'unbind_', arguments);
 	},
 	
 	onShow: function () {
-		if (this.desktop)
-			_createChart(this);
+		_createChart(this);
 	},
 	
 	onResponse: function () {
-		_redraw(this);
+		if (this._shallUpdate) {
+			_syncChart(this);
+			this._shallUpdate = false;
+		}
 	},
 	
 	getZclass: function () {
@@ -205,8 +240,15 @@ fusionchartz.Fusionchart = zk.$extends(zk.Widget, {
 		return zcls != null ? zcls: "z-fusionchart";
 	},
 	
-	clickChart: function (series, category) {
-		this.fire('onClick', {series: zk.parseInt(series), category: zk.parseInt(category)});
+	doClick_: function () {
+		//do not thing
+	},
+	
+	clickChart: function (series, category, index) {
+		this.fire('onClick', {
+			series: zk.parseInt(series), 
+			category: zk.parseInt(category),
+			index: zk.parseInt(index)});
 	}
 });		
 })();

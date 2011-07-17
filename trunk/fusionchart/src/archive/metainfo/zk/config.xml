@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- config.xml
+	Purpose:
+		
+	Description:
+		
+	History:
+		Thu Mar 10 12:37:48     2011, Created by jimmy shiau
+
+Copyright (C) 2011 Potix Corporation. All Rights Reserved.
+-->
+
+<config>
+	<config-name>fusionchart</config-name><!-- used to resolve dependency -->
+	<depends>zk</depends>
+
+	<version>
+		<version-class>org.zkoss.fusionchart.Version</version-class>
+		<version-uid>2.2.0</version-uid>
+		<zk-version>5.0.6</zk-version><!-- or later -->
+	</version>
+
+
+	<library-property>
+		<name>org.zkoss.fusionchart.engine.class</name>
+		<value>org.zkoss.fusionchart.impl.FusionChartEngine</value>
+	</library-property>
+</config>

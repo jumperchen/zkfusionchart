@@ -5,11 +5,11 @@
 	
 	<version>
 		<version-class>org.zkoss.fusionchart.Version</version-class>
-		<version-uid>2.2.50-FL</version-uid>
+		<version-uid>2.2.0</version-uid>
 		<zk-version>5.0.6</zk-version><!-- or later -->
 	</version>
 	
-	<javascript-module name="fusionchartz.fusionchart" version="2.2.50-FL"/>
+	<javascript-module name="fusionchartz.fusionchart" version="2.2.0"/>
 	
 	<zscript>
 	import org.zkoss.fusionchart.*;
