@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 	<name>The ZK Fusionchart Project</name>
 	<description>The ZK Fusionchart Project</description>
-	<url>http://www.zkoss.org/product/zkfusionchart.dsp</url>
+	<url>http://code.google.com/p/zkfusionchart/</url>
 	<modules>
 		<module>fusionchartz</module>
 		<module>zkfusionchartdemo</module>

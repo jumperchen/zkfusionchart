@@ -24,10 +24,6 @@
 			<id>zk repository</id>
 			<url>http://mavensync.zkoss.org/maven2</url>
 		</repository>
-		<repository>
-			<id>ZK PE Evaluation</id>
-			<url>http://mavensync.zkoss.org/zk/pe-eval</url>
-		</repository>
 	</repositories>
 	<pluginRepositories>
 		<pluginRepository>

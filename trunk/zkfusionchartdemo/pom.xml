@@ -7,7 +7,7 @@
 	<packaging>war</packaging>
 	<name>The ZK Fusionchart Demo</name>
 	<description>The ZK Fusionchart Demo</description>
-	<url>http://www.zkoss.org/product/zkfusionchart.dsp</url>
+	<url>http://code.google.com/p/zkfusionchart/</url>
 	<properties>
 		<fusionchart.version>2.2.0</fusionchart.version>
 		<zk.version>5.0.6</zk.version>

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding="archive/" kind="src" path="zkfusionchartdemo/src"/>
-	<classpathentry kind="src" path="fusionchart/src/archive"/>
+	<classpathentry excluding="archive/" kind="src" path="fusionchartz/src"/>
 	<classpathentry kind="src" path="zkfusionchartdemo/src/archive"/>
-	<classpathentry excluding="archive/" kind="src" path="fusionchart/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="output" path="target/classes"/>
