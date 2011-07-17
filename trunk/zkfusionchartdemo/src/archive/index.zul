@@ -34,11 +34,11 @@
 				<vlayout>
 					<chart id="chart" title="@{attr.type}" width="500" height="250" type="@{attr.type}"
 						model="@{attr.model}" orient="@{attr.orient}" threeD="@{attr.threeD}"
-						onClick="doClick(event)" />
+						forward="onChartClick" />
 					<fusionchart id="fchart" title="@{attr.type}" width="500" height="250" type="@{attr.type}"
 						model="@{attr.model}" orient="@{attr.orient}" threeD="@{attr.threeD}"
 						chartRenderer="@{attr.renderer}"
-						onClick="doClick(event)" />
+						forward="onChartClick" />
 				</vlayout>
 			</center>
 		</borderlayout>
