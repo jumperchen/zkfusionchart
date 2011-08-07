@@ -25,8 +25,7 @@ import java.awt.Paint;
  * accessible.
  */
 public class ChartColor extends Color {
-	public static final Paint[] DEFAULT_PAINT_SEQUENCE = ChartColor
-			.createDefaultPaintArray();
+	
 	/**
 	 * Convenience method to return an array of <code>Paint</code> objects that
 	 * represent the pre-defined colors in the <code>Color<code> and
@@ -129,6 +128,9 @@ public class ChartColor extends Color {
 	/** A very light magenta color. */
 	public static final Color VERY_LIGHT_MAGENTA = new Color(0xFF, 0x80, 0xFF);
 
+	public static final Paint[] DEFAULT_PAINT_SEQUENCE = ChartColor
+		.createDefaultPaintArray();
+	
 	/**
 	 * Creates a Color with an opaque sRGB with red, green and blue values in
 	 * range 0-255.
