@@ -97,9 +97,12 @@
 		if (!((dataXML = wgt._dataXML) || (dataXMLPath = wgt._dataXMLPath)) 
 			|| !wgt.isRealVisible())
 			return;
-			
-		var chart = new FusionCharts(_swfPath + _getSwf(wgt), 
-						'Chart_' + wgt.uuid, zk.parseInt(wgt._intWidth), zk.parseInt(wgt._intHeight));
+		
+		var n = wgt.$n(),
+			width = n.style.width || wgt._intWidth,
+			height = n.style.height || wgt._intHeight,
+			chart = new FusionCharts(_swfPath + _getSwf(wgt), 
+				'Chart_' + wgt.uuid, zk.parseInt(width), zk.parseInt(height));
 		
 		if (dataXML)
 			chart.setDataXML(dataXML);
@@ -214,19 +217,20 @@ fusionchartz.Fusionchart = zk.$extends(zk.Widget, {
 	
 	bind_: function() {
 		this.$supers(Fusionchart, 'bind_', arguments);
-		zWatch.listen({onShow: this, onResponse: this});
+		zWatch.listen({onShow: this, onResponse: this, onSize: this});
 		_createChart(this);
 	},
 	
 	unbind_: function () {
 		this._fusionchart = this._shallRedraw = this._shallUpdate = null;
-		zWatch.unlisten({onShow: this, onResponse: this});
+		zWatch.unlisten({onShow: this, onResponse: this, onSize: this});
 		this.$supers(Fusionchart, 'unbind_', arguments);
 	},
 	
-	onShow: function () {
+	onSize: _zkf = function () {
 		_createChart(this);
 	},
+	onShow: _zkf,
 	
 	onResponse: function () {
 		if (this._shallUpdate) {
