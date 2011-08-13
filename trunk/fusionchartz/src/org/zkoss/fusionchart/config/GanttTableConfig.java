@@ -153,12 +153,12 @@ public class GanttTableConfig extends ChartPropertiesImpl {
 		}
 
 		/**
-		 * Return the label.
+		 * Return the properties of cell.
 		 * 
 		 * @param index
 		 * @return ChartProperties
 		 */
-		public ChartProperties getLabel(int index) {
+		public ChartProperties getCellProperties(int index) {
 			return super.getProperties(index);
 		}
 

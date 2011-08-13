@@ -18,6 +18,7 @@ package org.zkoss.fusionchart.renderer;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -28,10 +29,25 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import org.zkoss.fusionchart.api.ChartProperties;
-import org.zkoss.fusionchart.api.FusionchartRenderer;
+import org.zkoss.fusionchart.api.GanttTableRenderer;
+import org.zkoss.fusionchart.config.CategoriesConfig;
+import org.zkoss.fusionchart.config.GanttChartCategoriesConfig;
+import org.zkoss.fusionchart.config.GanttChartCategoriesConfig.GanttChartCategoriesProperties;
+import org.zkoss.fusionchart.config.GanttChartConfig;
 import org.zkoss.fusionchart.config.GanttChartHeaderConfig;
+import org.zkoss.fusionchart.config.GanttChartSeriesConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig.GanttRow;
+import org.zkoss.fusionchart.config.GanttTableConfig.GanttTableColumnConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig.GanttTableColumnProperties;
+import org.zkoss.fusionchart.config.MilestoneConfig;
+import org.zkoss.fusionchart.config.ProcessConfig;
+import org.zkoss.fusionchart.config.PropertiesMapHandler;
+import org.zkoss.fusionchart.config.PropertiesMapProperties;
+import org.zkoss.fusionchart.config.PropertiesProxy;
+import org.zkoss.fusionchart.config.TrendLineConfig;
 import org.zkoss.fusionchart.impl.Utils;
-import org.zkoss.lang.Objects;
+import org.zkoss.lang.Exceptions;
 import org.zkoss.util.Dates;
 import org.zkoss.zul.CategoryModel;
 import org.zkoss.zul.GanttModel;
@@ -44,99 +60,111 @@ import org.zkoss.zul.XYModel;
  * 
  */
 public class RenderUtils {
-	/*Pie*/
-	public final static PieChartRenderer getPieChartRenderer(
-			FusionchartRenderer renderer) {
-		if (renderer instanceof PieChartRenderer)
-			return (PieChartRenderer) renderer;
-		return null;
-	}
 	
+	/*Pie*/
 	public final static void renderPieSet(StringBuffer sb, int index,
-			Comparable category, Number value, PieChartRenderer renderer,
-			String uuid) {
+			Comparable category, Number value, CategoriesConfig config, String uuid) {
 
 		sb.append("<set name='").append(category).append("'")
 			.append(Utils.renderFusionchartAttr("value", value));
-
+		
 		if (uuid != null)
-			addClientEventInvok(uuid, sb, 0, index);
-		if (renderer != null)
-			renderer.renderCategoryProperty(sb, index, category);
+			RenderUtils.addClientEventInvok(sb, uuid, 0, index);
+		
+		if (config != null)
+			Utils.renderChartProperties(sb, 
+					PropertiesProxy.getProperties(config, index, category));
+		
 		sb.append(" color='").append(ChartColor.getColor(index)).append("'/>");
 	}
 	
 	/*Categories*/
-	public final static CategoryChartRenderer getCategoryChartRenderer(
-			FusionchartRenderer renderer) {
-		if (renderer instanceof CategoryChartRenderer)
-			return (CategoryChartRenderer) renderer;
-		return null;
-	}
-	
 	public final static void renderCategory(StringBuffer sb, Collection c,
-			CategoryChartRenderer renderer) {
+			PropertiesMapProperties config) {
 		sb.append("<categories");
-		if (renderer != null)
-			renderer.renderCategoriesProperty(sb);
+		
+		
+		if (config != null)
+			Utils.renderChartProperties(sb, config);
+		
 		sb.append(">");
 
 		int index = 0;
 		for (final Iterator it = c.iterator(); it.hasNext(); index++) {
 			Comparable category = (Comparable) it.next();
 			sb.append("<category name='").append(category).append("'");
-			if (renderer != null)
-				renderer.renderCategoryProperty(sb, index, category);
+			
+			if (config != null)
+				Utils.renderChartProperties(sb, 
+						PropertiesProxy.getProperties(
+								config, index, category));
+			
 			sb.append("/>");
 		}
 		sb.append("</categories>");
 	}
-
 	
 	/*Series*/
+	private final static void renderSeriesBegin(StringBuffer sb, int index,
+			Comparable series, PropertiesMapHandler config) {
+		sb.append("<dataset seriesName='").append(series).append("'");
+		
+		if (config != null)
+			Utils.renderChartProperties(sb, 
+					PropertiesProxy.getProperties(config, index, series));
+		
+		sb.append(" color='").append(ChartColor.getColor(index)).append("'>");
+	}
+	
 	public final static void renderSeries(StringBuffer sb, CategoryModel model,
-			CategoryChartRenderer renderer, String uuid) {
+			PropertiesMapHandler config, String uuid) {
+		
 		Collection cates = model.getCategories();
-
+		
 		int sIndex = 0;
 		for (final Iterator it = model.getSeries().iterator(); it.hasNext(); sIndex++) {
 			Comparable series = (Comparable) it.next();
-			renderSeriesBegin(sb, sIndex, series, renderer);
+			renderSeriesBegin(sb, sIndex, series, config);
 			
 			int cIndex = 0;
 			for (final Iterator it2 = cates.iterator(); it2.hasNext(); cIndex++) {
 				Comparable category = (Comparable) it2.next();
-				sb.append("<set")
-					.append(Utils.renderFusionchartAttr("value", model.getValue(series, category)));
-
-				if (uuid != null)
-					addClientEventInvok(uuid, sb, sIndex, cIndex);
-				if (renderer != null)
-					renderer.renderDatasetProperty(sb, sIndex, cIndex, series, category);
-
-				sb.append("/>");
+				
+				renderDataset(sb, sIndex, cIndex, series, category,
+						model.getValue(series, category), config, uuid);
+				
 			}
 			sb.append("</dataset>");
 		}
 	}
 	
-	public final static void renderSeriesBegin(StringBuffer sb, int index,
-			Comparable series, CategoryChartRenderer renderer) {
-		sb.append("<dataset seriesName='").append(series).append("'");
-		if (renderer != null)
-			renderer.renderSeriesProperty(sb, index, series);
-		sb.append(" color='").append(ChartColor.getColor(index)).append("'>");
+	private static void renderDataset(StringBuffer sb,
+			int seriesIndex, int categoryIndex, Comparable series,
+			Comparable category, Number value, PropertiesMapHandler config, String uuid) {
+		
+		sb.append("<set")
+			.append(Utils.renderFusionchartAttr("value", value));
+	
+		if (uuid != null)
+			addClientEventInvok(sb, uuid, seriesIndex, categoryIndex);
+		
+		if (config != null)
+			Utils.renderChartProperties(sb, 
+					PropertiesProxy.getDatasetProperties(
+							seriesIndex, categoryIndex, series, category, config));
+	
+		sb.append("/>");
 	}
 	
 	/*XY Series*/
 	public final static void renderXYSeries(StringBuffer sb, XYModel model,
-			Set xSet, Map seriesMap, CategoryChartRenderer renderer, String uuid) {
+			Set xSet, Map seriesMap, PropertiesMapHandler config, String uuid) {
 
 		int sIndex = 0;
 		for (final Iterator it = model.getSeries().iterator(); it.hasNext(); sIndex++) {
 			final Comparable series = (Comparable) it.next();
 			Map indexMap = (Map) seriesMap.get(series);
-			renderSeriesBegin(sb, sIndex, series, renderer);
+			renderSeriesBegin(sb, sIndex, series, config);
 
 			int cIndex = 0;
 			for (final Iterator it2 = xSet.iterator(); it2.hasNext();) {
@@ -146,38 +174,56 @@ public class RenderUtils {
 					sb.append("<set/>");
 					continue;
 				}
-				
 				cIndex = ((Integer)o).intValue();
-				sb.append("<set")
-					.append(Utils.renderFusionchartAttr("value", model.getY(series, cIndex)));
+				renderDataset(sb, sIndex, cIndex, series, (Comparable) x,
+						model.getY(series, cIndex), config, uuid);
 				
-				if (uuid != null)
-					addClientEventInvok(uuid, sb, sIndex, cIndex);
-				if (renderer != null)
-					renderer.renderDatasetProperty(sb, sIndex, cIndex, series, (Comparable) x);
-		
-				sb.append("/>");
 			}
 			sb.append("</dataset>");
 		}
 	}
 
 	/*Gantt*/
-	public final static void renderCategory(StringBuffer sb, TimeZone tz,
-			Date startDate, Date endDate, GanttChartRenderer renderer) {
+	public static void renderCategories(StringBuffer sb,
+			GanttChartCategoriesConfig config) {
+		for (int i = 0, j = config.size(); i < j; i++) {
+			GanttChartCategoriesProperties props = config.getCategoriesProperties(i);
+			sb.append("<categories");
+			Utils.renderChartProperties(sb, props).append(">");
+			Collection keys = PropertiesProxy.getCategoryKeys(props);
+			
+			for (Iterator it = keys.iterator(); it.hasNext();) {
+				List key = (List) it.next();
+				ChartProperties cProps = 
+					props.getCategoryProperties((String) key.get(0), 
+							(Date) key.get(1), (Date) key.get(2));
+				sb.append("<category");
+				Utils.renderChartProperties(sb, cProps).append("/>");
+			}
+			
+			sb.append("</categories>");
+		}
+	}
+	
+	public final static void renderMonthHeaders(StringBuffer sb, TimeZone tz,
+			Date startDate, Date endDate, GanttChartHeaderConfig config) {
+		
 		String mFmt = GanttChartHeaderConfig.DEFAULT_MONTH_FORMAT;
 		int period = GanttChartHeaderConfig.DEFAULT_PERIOD;
-		if (renderer != null) {
-			mFmt = renderer.getHeaderFormater();
-			period = renderer.getHeaderPeriod();
-			renderer.renderCategories(sb);
+		
+		if (config != null) {
+			mFmt = config.getDateFormater();
+			period = config.getPeriod();
 		}
+		
 		DateFormat df = new SimpleDateFormat(mFmt);
 		
 		//render header
 		sb.append("<categories");
-		if (renderer != null)
-			renderer.renderHeadersProperty(sb);
+		
+		if (config != null)
+			Utils.renderChartProperties(sb, config);
+		
 		sb.append(">");
 		
 		if (period != Calendar.DAY_OF_MONTH) {
@@ -189,6 +235,7 @@ public class RenderUtils {
 		cal.setTime(startDate);
 		int i = 0;
 		do {
+			
 			sb.append("<category name='").append(df.format(startDate)).append("'")
 				.append(Utils.renderFusionchartDate("start", startDate));
 			
@@ -196,8 +243,10 @@ public class RenderUtils {
 			cal.add(Calendar.DAY_OF_MONTH, -1);
 			sb.append(Utils.renderFusionchartDate("end", cal.getTime()));
 			
-			if (renderer != null)
-				renderer.renderHeaderProperty(sb, i, startDate, cal.getTime(), tz);
+			if (config != null)
+				Utils.renderChartProperties(sb, PropertiesProxy.getProperties(
+						config, i, GanttChartHeaderConfig.getKey(startDate, cal.getTime())));
+			
 			sb.append("/>");
 			cal.add(Calendar.DAY_OF_MONTH, 1);
 			startDate = cal.getTime();
@@ -205,12 +254,15 @@ public class RenderUtils {
 		} while (startDate.before(endDate));
 		sb.append("</categories>");
 	}
-	
+
 	public final static void renderProcess(StringBuffer sb, Set processSet,
-			Map processIDMap, GanttChartRenderer renderer) {
+			Map processIDMap, ProcessConfig config) {
+		
 		sb.append("<processes");
-		if (renderer != null)
-			renderer.renderProcessesProperty(sb);
+		
+		if (config != null)
+			Utils.renderChartProperties(sb, config);
+		
 		sb.append(">");
 		
 		int index = 0;
@@ -220,16 +272,29 @@ public class RenderUtils {
 			sb.append("<process name='").append(taskName)
 				.append("' id='").append(processIDMap.get(taskName)).append("'");
 		
-			if (renderer != null)
-				renderer.renderProcessProperty(sb, index, taskName);
+			if (config != null)
+				Utils.renderChartProperties(sb, 
+						PropertiesProxy.getProperties(config, index, taskName));
+			
 			sb.append("/>");
 			
 		}
 		sb.append("</processes>");
 	}
 	
+	public final static void renderTasksBegin(StringBuffer sb,
+			GanttChartConfig config) {
+		sb.append("<tasks");
+		if (config != null) {
+			Utils.renderChartProperties(sb,
+					PropertiesProxy.getTasksProperties(config));
+		}
+		sb.append(">");
+	}
+	
 	public final static void renderTasks(StringBuffer sb, GanttModel model,
-			Map processIDMap, GanttChartRenderer renderer, String uuid) {
+			Map processIDMap, GanttChartConfig config, String uuid) {
+		
 		Comparable[] allseries = model.getAllSeries();
 		int seriesSize = allseries.length;
 		int height = 0;
@@ -241,10 +306,13 @@ public class RenderUtils {
 			padding = 10 / (seriesSize + 1);
 		}
 		
-		sb.append("<tasks");
-		if (renderer != null)
-			renderer.renderTasksProperty(sb);
-		sb.append(">");
+		
+		GanttChartSeriesConfig sConfig =  null;
+		if (config != null) 
+			sConfig = PropertiesProxy.getSeriesConfig(config);
+		
+		
+		renderTasksBegin(sb, config);
 		
 		for (int i = 0, j = allseries.length; i < j; i++) {
 			final Comparable series = allseries[i];
@@ -261,9 +329,15 @@ public class RenderUtils {
 					.append(Utils.renderFusionchartDate("end", task.getEnd()));
 				
 				if (uuid != null)
-					addClientEventInvok(uuid, sb, i, k);
-				if (renderer != null)
-					renderer.renderTaskProperty(sb, i, k, series, taskName);
+					addClientEventInvok(sb, uuid, i, k);
+				
+				if (sConfig != null) {
+					Utils.renderChartProperties(sb, 
+							PropertiesProxy.getTaskProperties(
+									i, k, series, taskName, sConfig));
+					Utils.renderChartProperties(sb, 
+							PropertiesProxy.getProperties(sConfig, i, series));
+				}
 				
 				sb.append(" height='").append(height).append("' topPadding='")
 					.append(padding + (padding + height) * i)
@@ -275,26 +349,43 @@ public class RenderUtils {
 	}
 	
 	public final static void renderGenttTable(StringBuffer sb, ListModel model,
-			GanttTableRenderer renderer) {
+			GanttTableRenderer renderer, GanttTableConfig config) {
 		
 		if (renderer == null)
-			renderer = GanttTableRenderer.getDefalutRenderer();
+			renderer = getDefalutRenderer();
 		
-		List columnList = renderer.createColumnList(model);
 		
-		renderer.renderTableProperties(sb.append("<dataTable"));
-		sb.append(">");
+		GanttTableColumnConfig cConfig = null;
+		if (config != null)
+			cConfig = PropertiesProxy.getColumnConfig(config); 
+		
+		
+		List columnList = createColumnList(model, renderer);
+		
+		Utils.renderChartProperties(sb.append("<dataTable"), config).append(">");
 		
 		int cIndex = 0;
 		for (Iterator it = columnList.iterator(); it.hasNext(); cIndex++) {
 			List labels = (List) it.next();
 			
-			renderer.renderColumnProperties(sb.append("<dataColumn"), cIndex);
+			sb.append("<dataColumn");
+			
+			GanttTableColumnProperties cprops = null;
+			if (cConfig != null) {
+				cprops = cConfig.getColumnProperties(cIndex);
+				Utils.renderChartProperties(sb, cprops);
+			}
+			
 			sb.append(">");
 			
 			int tIndex = 0;
 			for (Iterator it2 = labels.iterator(); it2.hasNext(); tIndex++) {
 				sb.append("<text");
+				
+				if (cprops != null)
+					Utils.renderChartProperties(sb, 
+							cprops.getTextProperties(tIndex));
+				
 				Utils.renderChartProperties(sb, 
 						(ChartProperties) it2.next()).append("/>");
 			}
@@ -302,13 +393,91 @@ public class RenderUtils {
 		}
 		sb.append("</dataTable>");
 	}
-	
-	/*event*/
-	public static final void addClientEventInvok(String uuid, StringBuffer sb,
-			int sIndex, int cIndex) {
-		sb.append(" link=\"JavaScript:zk.Widget.$('").append(uuid)
-				.append("').clickChart('").append(sIndex).append("','")
-				.append(cIndex).append("');\"");
+
+	private static GanttTableRenderer getDefalutRenderer() {
+		return new DefalutRenderer();
 	}
 	
+	public static class DefalutRenderer implements GanttTableRenderer {
+		private static final long serialVersionUID = 20110717110710L;
+		public void render(GanttRow row, Object data) throws Exception {
+			row.createLabel(String.valueOf(data));
+		}
+		
+	}
+	
+	private static List createColumnList(ListModel model, GanttTableRenderer renderer) {
+		List columnList = new ArrayList(4);
+		for (int i = 0, j = model.getSize(); i < j; i++) {
+			GanttRow row = new GanttRow();
+//			addPropertyListener(row);
+			try {
+				renderer.render(row, model.getElementAt(i));
+			} catch (Exception e) {
+				row.createLabel(Exceptions.getMessage(e));
+			}
+			//create column list
+			for (int k = 0, l = row.size(); k < l; k++) {
+				List labels = null;
+				try {
+					labels = (List) columnList.get(k);
+				} catch (IndexOutOfBoundsException e) {
+					columnList.add(labels = new ArrayList(13));
+				}
+				labels.add(row.getCellProperties(k));
+			}
+		}
+		return columnList;
+	}
+
+	/*event*/
+	public static final StringBuffer addClientEventInvok(StringBuffer sb, String uuid,
+			int sIndex, int cIndex) {
+		return sb.append(" link=\"JavaScript:zk.Widget.$('").append(uuid)
+				.append("').clickChart('").append(sIndex).append("','")
+				.append(cIndex).append("');\"");
+		
+	}
+	
+	/*TrendLine*/
+	public static final void renderTrendLine(StringBuffer sb,
+			TrendLineConfig config) {
+		if (config == null) return;
+		
+		int size = config.size();
+		if (size == 0) return;
+		
+		Utils.renderChartProperties(
+				sb.append("<trendlines"), config).append(">");
+		for (int i = 0; i < size; i++)
+			Utils.renderChartProperties(
+					sb.append("<line"), config.getTrendLine(i))
+					.append("/>");
+		sb.append("</trendlines>");
+	}
+	
+	/*Milestone*/
+	public static final void renderMilestone(StringBuffer sb, Map taskIDMap,
+			MilestoneConfig config) {
+
+		if (config == null)
+			return;
+
+		int size = config.size();
+		if (size == 0)
+			return;
+
+		sb.append("<milestones");
+		Utils.renderChartProperties(sb, config).append(">");
+
+		for (int i = 0; i < size; i++) {
+			ChartProperties milestone = config.getMilestone(i);
+			sb.append("<milestone taskId='")
+					.append(taskIDMap.get(PropertiesProxy.getTask(i, config)))
+					.append("'");
+
+			Utils.renderChartProperties(sb, milestone).append("/>");
+		}
+		sb.append("</milestones>");
+	}
 }

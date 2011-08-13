@@ -20,7 +20,9 @@ import java.util.Collection;
 
 import org.zkoss.fusionchart.api.ChartProperties;
 import org.zkoss.fusionchart.config.GanttChartCategoriesConfig.GanttChartCategoriesProperties;
+import org.zkoss.fusionchart.config.GanttChartSeriesConfig.GanttChartSeriesProperties;
 import org.zkoss.fusionchart.config.GanttTableConfig.GanttTableColumnConfig;
+import org.zkoss.fusionchart.config.SeriesConfig.SeriesProperties;
 import org.zkoss.fusionchart.config.XYChartConfig.XAxisConfig;
 import org.zkoss.zul.GanttModel.GanttTask;
 
@@ -28,15 +30,13 @@ import org.zkoss.zul.GanttModel.GanttTask;
  * @author jimmy
  * 
  */
-public class PropertiesRenderProxy {
+public class PropertiesProxy {
 
-	public final static ChartProperties getProperties(PropertiesMapHandler handler,
-			int index, Object key) {
+	public final static ChartProperties getProperties(
+			PropertiesMapHandler handler, int index, Object key) {
+		
 		ChartProperties properties = handler.getProperties(new Integer(index));
-		if (properties == null)
-			properties = handler.getProperties(key);
-
-		return properties;
+		return properties != null ? properties : handler.getProperties(key);
 	}
 
 	/* CategoryChartConfig */
@@ -46,6 +46,17 @@ public class PropertiesRenderProxy {
 
 	public final static CategoriesConfig getCategoryConfig(CategoryChartConfig config) {
 		return config.categoryConfig();
+	}
+	
+	public final static ChartProperties getDatasetProperties(int seriesIndex,
+			int categoryIndex, Comparable series, Comparable category,
+			PropertiesMapHandler config) {
+
+		ChartProperties sProperties = getProperties(config, seriesIndex, series);
+
+		return sProperties instanceof SeriesProperties ? getProperties(
+				(SeriesProperties) sProperties, categoryIndex, category) : null;
+
 	}
 
 	public final static TrendLineConfig getTrendLineConfig(CategoryChartConfig config) {
@@ -90,6 +101,17 @@ public class PropertiesRenderProxy {
 		return props.getKeys();
 	}
 
+	public final static ChartProperties getTaskProperties(int seriesIndex, int taskIndex,
+			Comparable series, String taskName, GanttChartSeriesConfig config) {
+		
+		ChartProperties sProperties = 
+			getProperties(config, seriesIndex, series);
+		
+		
+		return sProperties instanceof GanttChartSeriesProperties ? getProperties(
+				(GanttChartSeriesProperties) sProperties, taskIndex, taskName) : null;
+	}
+	
 	public final static TrendLineConfig getTrendLineConfig(GanttChartConfig config) {
 		return config.trendLineConfig();
 	}
@@ -98,8 +120,12 @@ public class PropertiesRenderProxy {
 		return config.milestoneConfig();
 	}
 	
-	public final static GanttTask getTask(int index, MilestoneConfig congig) {
-		return (GanttTask) congig.getTask(index);
+	public final static GanttTask getTask(int index, MilestoneConfig config) {
+		return (GanttTask) config.getTask(index);
+	}
+	
+	public final static GanttTableConfig getTableConfig(GanttChartConfig config) {
+		return config.tableConfig();
 	}
 	
 	public final static GanttTableColumnConfig getColumnConfig(GanttTableConfig config) {

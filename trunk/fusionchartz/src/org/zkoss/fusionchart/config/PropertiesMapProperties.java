@@ -24,7 +24,7 @@ import org.zkoss.fusionchart.api.ChartProperties;
  * @author jimmy
  * 
  */
-abstract class PropertiesMapProperties extends
+public abstract class PropertiesMapProperties extends
 		PropertiesMapHandler implements ChartProperties {
 	private static final long serialVersionUID = 20110624001510L;
 	private ChartProperties _properties;

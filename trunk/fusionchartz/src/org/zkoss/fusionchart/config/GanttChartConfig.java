@@ -44,6 +44,8 @@ public class GanttChartConfig extends ChartConfig {
 	private TrendLineConfig _trendLineConfig;
 	private MilestoneConfig _mstoneConfig;
 	
+	private GanttTableConfig _tableConfig;
+	
 	/**
 	 * Returns the canvas background color. 
 	 * @return String
@@ -153,6 +155,14 @@ public class GanttChartConfig extends ChartConfig {
 		return _mstoneConfig;
 	}
 	
+	public GanttTableConfig getTableConfig() {
+		if (_tableConfig == null) {
+			_tableConfig = new GanttTableConfig();
+			addPropertyListener((ChartInfoNotifier)_tableConfig);
+		}
+		return _tableConfig;
+	}
+	
 	/*package*/ GanttChartHeaderConfig headerConfig() {
 		return _headerConfig;
 	}
@@ -179,5 +189,9 @@ public class GanttChartConfig extends ChartConfig {
 	
 	/*package*/ MilestoneConfig milestoneConfig() {
 		return _mstoneConfig;
+	}
+	
+	/*package*/ GanttTableConfig tableConfig() {
+		return _tableConfig;
 	}
 }

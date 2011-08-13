@@ -67,7 +67,7 @@ import org.zkoss.fusionchart.impl.Utils;
  * @author jimmy
  * 
  */
-public abstract class ChartConfig extends ChartPropertiesImpl {
+public class ChartConfig extends ChartPropertiesImpl {
 	private static final long serialVersionUID = 201103211163340L;
 
 	/**

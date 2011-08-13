@@ -16,23 +16,41 @@ Copyright (C) 2011 Potix Corporation. All Rights Reserved.
  */
 package org.zkoss.fusionchart;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 import org.zkoss.fusionchart.api.FusionchartEngine;
-import org.zkoss.fusionchart.api.FusionchartRenderer;
-import org.zkoss.fusionchart.config.ChartInfoNotifier;
+import org.zkoss.fusionchart.api.GanttTableRenderer;
+import org.zkoss.fusionchart.config.ChartConfig;
 import org.zkoss.fusionchart.impl.Utils;
-import org.zkoss.fusionchart.renderer.GanttTableRenderer;
-import org.zkoss.lang.*;
+import org.zkoss.lang.Classes;
+import org.zkoss.lang.Library;
+import org.zkoss.lang.Objects;
+import org.zkoss.lang.Strings;
 import org.zkoss.util.TimeZones;
-import org.zkoss.zk.au.*;
-import org.zkoss.zk.ui.*;
-import org.zkoss.zk.ui.event.*;
+import org.zkoss.zk.au.AuRequest;
+import org.zkoss.zk.au.AuRequests;
+import org.zkoss.zk.ui.Desktop;
+import org.zkoss.zk.ui.HtmlBasedComponent;
+import org.zkoss.zk.ui.UiException;
+import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
+import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.sys.ContentRenderer;
-import org.zkoss.zul.*;
-import org.zkoss.zul.event.*;
+import org.zkoss.zul.CategoryModel;
+import org.zkoss.zul.Chart;
+import org.zkoss.zul.ChartModel;
+import org.zkoss.zul.GanttModel;
+import org.zkoss.zul.ListModel;
+import org.zkoss.zul.PieModel;
+import org.zkoss.zul.XYModel;
+import org.zkoss.zul.event.ChartDataEvent;
+import org.zkoss.zul.event.ChartDataListener;
+import org.zkoss.zul.event.ListDataEvent;
+import org.zkoss.zul.event.ListDataListener;
 
 
 /**
@@ -107,7 +125,11 @@ public class Fusionchart extends HtmlBasedComponent implements org.zkoss.fusionc
 	//chart data model
 	private transient ChartModel _model; //chart data model
 	private transient ListModel _tableModel;//chart table model
-	private transient FusionchartRenderer _chartRenderer; //chart render
+	private transient ChartConfig _chartConfig;
+	
+	
+	
+//	private transient FusionchartRenderer _chartRenderer; //chart render
 	private transient GanttTableRenderer _tableRenderer; //chart table render
 	
 	//chart engine
@@ -513,23 +535,24 @@ public class Fusionchart extends HtmlBasedComponent implements org.zkoss.fusionc
 		return _dataXMLPath;
 	}
 	
-	public FusionchartRenderer getChartRenderer() {
-		return _chartRenderer;
+	public ChartConfig getChartConfig() {
+		return _chartConfig;
 	}
 
-	public void setChartRenderer(FusionchartRenderer renderer) {
-		if (renderer != null) {
-			if (_chartRenderer != renderer) {
-				if (_chartRenderer != null) {
-					((ChartInfoNotifier)_chartRenderer).removeChartDataListener(_propertyListener);
+	public void setChartConfig(ChartConfig chartConfig) {
+		if (chartConfig != null) {
+			if (_chartConfig != chartConfig) {
+				if (_chartConfig != null) {
+					_chartConfig.removeChartDataListener(_propertyListener);
 				}
-				_chartRenderer = renderer;
+				_chartConfig = chartConfig;
 				initPropertyListener();
 			}
-		} else if (_chartRenderer != null) {
-			((ChartInfoNotifier)_chartRenderer).removeChartDataListener(_propertyListener);
-			_chartRenderer = null;
+		} else if (_chartConfig != null) {
+			_chartConfig.removeChartDataListener(_propertyListener);
+			_chartConfig = null;
 		}
+		
 		smartDrawChart();
 	}
 	
@@ -538,20 +561,10 @@ public class Fusionchart extends HtmlBasedComponent implements org.zkoss.fusionc
 	}
 
 	public void setTableRenderer(GanttTableRenderer renderer) {
-		if (renderer != null) {
-			if (_tableRenderer != renderer) {
-				if (_tableRenderer != null) {
-					((ChartInfoNotifier)_tableRenderer).removeChartDataListener(_propertyListener);
-				}
-				_tableRenderer = renderer;
-				initTablePrppertyListener();
-			}
-		} else if (_tableRenderer != null) {
-			((ChartInfoNotifier)_tableRenderer).removeChartDataListener(_propertyListener);
-			_tableRenderer = null;
+		if (renderer != _tableRenderer) {
+			_tableRenderer = renderer;
+			smartDrawChart();
 		}
-		
-		smartDrawChart();
 	}
 	
 	/** Returns the chart model associated with this chart, or null
@@ -691,15 +704,8 @@ public class Fusionchart extends HtmlBasedComponent implements org.zkoss.fusionc
 	private void initPropertyListener() {
 		if (_propertyListener == null) {
 			_propertyListener = new MyChartDataListener();
-			((ChartInfoNotifier)_chartRenderer).addChartDataListener(_propertyListener);
+			_chartConfig.addChartDataListener(_propertyListener);
 		}
-	}
-	
-	private void initTablePrppertyListener() {
-		if (_propertyListener == null) {
-			_propertyListener = new MyChartDataListener();
-		}
-		((ChartInfoNotifier)_tableRenderer).addChartDataListener(_propertyListener);
 	}
 	
 	private class MyChartDataListener implements ChartDataListener, Serializable {
@@ -745,7 +751,7 @@ public class Fusionchart extends HtmlBasedComponent implements org.zkoss.fusionc
 			clone.initDataListener();
 		}
 		
-		if (clone._chartRenderer != null) {
+		if (clone._chartConfig != null) {
 			clone._propertyListener = null;
 			clone.initPropertyListener();
 		}

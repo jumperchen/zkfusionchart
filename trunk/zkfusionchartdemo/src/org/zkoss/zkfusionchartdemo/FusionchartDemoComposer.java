@@ -5,23 +5,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.zkoss.fusionchart.Fusionchart;
-import org.zkoss.fusionchart.api.FusionchartRenderer;
+import org.zkoss.fusionchart.api.GanttTableRenderer;
 import org.zkoss.fusionchart.config.CategoriesConfig;
 import org.zkoss.fusionchart.config.CategoryChartConfig;
+import org.zkoss.fusionchart.config.ChartConfig;
 import org.zkoss.fusionchart.config.GanttChartCategoriesConfig.GanttChartCategoriesProperties;
-import org.zkoss.fusionchart.config.GanttTableConfig.GanttRow;
 import org.zkoss.fusionchart.config.GanttChartConfig;
 import org.zkoss.fusionchart.config.GanttChartSeriesConfig;
 import org.zkoss.fusionchart.config.GanttTableConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig.GanttRow;
 import org.zkoss.fusionchart.config.GanttTableConfig.GanttTableColumnConfig;
 import org.zkoss.fusionchart.config.PieChartConfig;
 import org.zkoss.fusionchart.config.SeriesConfig;
 import org.zkoss.fusionchart.config.XYChartConfig;
-import org.zkoss.fusionchart.renderer.CategoryChartRenderer;
-import org.zkoss.fusionchart.renderer.GanttChartRenderer;
-import org.zkoss.fusionchart.renderer.GanttTableRenderer;
-import org.zkoss.fusionchart.renderer.PieChartRenderer;
-import org.zkoss.fusionchart.renderer.XYChartRenderer;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.CheckEvent;
 import org.zkoss.zk.ui.event.Event;
@@ -47,11 +43,11 @@ import org.zkoss.zul.XYModel;
 
 public class FusionchartDemoComposer extends GenericForwardComposer {
 	private static final Map DEFAULT_MODEL = new HashMap();
-	private static final Map DEFAULT_RENDERER = new HashMap();
+	private static final Map DEFAULT_CONF = new HashMap();
 	private static final ChartModel CATE_MODEL = createCategoryModel();
 	private static final ChartModel XY_MODEL = createXYModel();
-	private static final CategoryChartRenderer CATE_RENDERER = createCategoryRenderer();
-	private static final XYChartRenderer XY_RENDERER = createXYRenderer();
+	private static final CategoryChartConfig CATE_CONF = createCategoryChartConfig();
+	private static final XYChartConfig XY_CONF = createXYChartConfig();
 	
 	static {
 		DEFAULT_MODEL.put(Chart.PIE, createPieModel());
@@ -63,14 +59,14 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 		DEFAULT_MODEL.put(Chart.GANTT, createGanttModel());
 		DEFAULT_MODEL.put(Fusionchart.COMBINATION, CATE_MODEL);
 		
-		DEFAULT_RENDERER.put(Chart.PIE, createPieRenderer());
-		DEFAULT_RENDERER.put(Chart.BAR, CATE_RENDERER);
-		DEFAULT_RENDERER.put(Chart.STACKED_BAR, CATE_RENDERER);
-		DEFAULT_RENDERER.put(Chart.LINE, XY_RENDERER);
-		DEFAULT_RENDERER.put(Chart.AREA, XY_RENDERER);
-		DEFAULT_RENDERER.put(Chart.STACKED_AREA, XY_RENDERER);
-		DEFAULT_RENDERER.put(Chart.GANTT, createGanttRenderer());
-		DEFAULT_RENDERER.put(Fusionchart.COMBINATION, createCombiCategoryRenderer());
+		DEFAULT_CONF.put(Chart.PIE, createPieChartConfig());
+		DEFAULT_CONF.put(Chart.BAR, CATE_CONF);
+		DEFAULT_CONF.put(Chart.STACKED_BAR, CATE_CONF);
+		DEFAULT_CONF.put(Chart.LINE, XY_CONF);
+		DEFAULT_CONF.put(Chart.AREA, XY_CONF);
+		DEFAULT_CONF.put(Chart.STACKED_AREA, XY_CONF);
+		DEFAULT_CONF.put(Chart.GANTT, createGanttChartConfig());
+		DEFAULT_CONF.put(Fusionchart.COMBINATION, createCombiCategoryChartConfig());
 	}
 	
 	private Listbox typeList;
@@ -164,127 +160,152 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 
 	
 	
-	private static PieChartRenderer createPieRenderer() {
-		return new PieChartRenderer () {
-			public void defineChartConfig(PieChartConfig chartConfig) {
-				chartConfig.setPieFillAlpha(95);
-				chartConfig.setAnimation(false);
-				chartConfig.addProperty("pieBorderColor", "FFFFFF");
-				
-				CategoriesConfig cConfig = chartConfig.getCategoryConfig();
-				cConfig.createCategoryProperties("C/C++").addProperty("color", "AFD8F8");
-				cConfig.createCategoryProperties("Java")
-					.addProperty("color", "8BBA00").addProperty("isSliced", "1");
-				cConfig.createCategoryProperties(2).addProperty("color", "F6BD0F");
-				cConfig.createCategoryProperties(3).addProperty("color", "A66EDD");
-			}
-		};
+	private static PieChartConfig createPieChartConfig() {
+		PieChartConfig config = new PieChartConfig();
+		config.setPieFillAlpha(95);
+		config.setAnimation(false);
+		config.addProperty("pieBorderColor", "FFFFFF");
+		
+		CategoriesConfig cConfig = config.getCategoryConfig();
+		cConfig.createCategoryProperties("C/C++").addProperty("color", "AFD8F8");
+		cConfig.createCategoryProperties("Java")
+		.addProperty("color", "8BBA00").addProperty("isSliced", "1");
+		cConfig.createCategoryProperties(2).addProperty("color", "F6BD0F");
+		cConfig.createCategoryProperties(3).addProperty("color", "A66EDD");
+		
+		return config;
 	}
 	
-	private static CategoryChartRenderer createCategoryRenderer() {
-		return new CategoryChartRenderer() {
-			public void defineChartConfig(CategoryChartConfig chartConfig) {
-				chartConfig.setAnimation(false);
-				chartConfig.addProperty("rotateNames", "1");
-				
-				SeriesConfig sConfig = chartConfig.getSeriesConfig();
-				
-				sConfig.createSeriesProperties(0)
-					.addProperty("color", "AFD8F8").addProperty("parentYAxis", "P");
-				sConfig.createSeriesProperties(1)
-					.addProperty("color", "FF8000").addProperty("parentYAxis", "S")
-					.addProperty("anchorBorderColor", "FF8000")
-					.addProperty("lineThickness", "4");
-			}
-		};
+	private static CategoryChartConfig createCategoryChartConfig() {
+		CategoryChartConfig config = new CategoryChartConfig();
+		config.setAnimation(false);
+		config.addProperty("rotateNames", "1");
+		
+		SeriesConfig sConfig = config.getSeriesConfig();
+		
+		sConfig.createSeriesProperties(0)
+			.addProperty("color", "AFD8F8").addProperty("parentYAxis", "P");
+		sConfig.createSeriesProperties(1)
+			.addProperty("color", "FF8000").addProperty("parentYAxis", "S")
+			.addProperty("anchorBorderColor", "FF8000")
+			.addProperty("lineThickness", "4");
+		
+		return config;
 	}
 	
-	private static XYChartRenderer createXYRenderer() {
-		return new XYChartRenderer() {
-			public void defineChartConfig(XYChartConfig chartConfig) {
-				
-				SeriesConfig sConfig = chartConfig.getSeriesConfig();
-				
-				sConfig.createSeriesProperties(0)
-					.addProperty("color", "0099FF")
-					.addProperty("alpha", "100")
-					.addProperty("anchorAlpha", "0")
-					.addProperty("lineThickness", "2");
-				
-				sConfig.createSeriesProperties(1)
-					.addProperty("color", "FF8000")
-					.addProperty("alpha", "80")
-					.addProperty("showAnchors", "0");
-			}
-		};
+	private static XYChartConfig createXYChartConfig() {
+		XYChartConfig config = new XYChartConfig();
+		SeriesConfig sConfig = config.getSeriesConfig();
+		
+		sConfig.createSeriesProperties(0)
+			.addProperty("color", "0099FF")
+			.addProperty("alpha", "100")
+			.addProperty("anchorAlpha", "0")
+			.addProperty("lineThickness", "2");
+		
+		sConfig.createSeriesProperties(1)
+			.addProperty("color", "FF8000")
+			.addProperty("alpha", "80")
+			.addProperty("showAnchors", "0");
+		
+		return config;
 	}
 	
-	private static CategoryChartRenderer createCombiCategoryRenderer() {
-		return new CategoryChartRenderer() {
-			public void defineChartConfig(CategoryChartConfig chartConfig) {
-				chartConfig.setAnimation(false);
-				chartConfig.setCanvasBgColor("F6DFD9");
-				chartConfig.addProperty("canvasBaseColor", "FE6E54");
-				chartConfig.addProperty("numberPrefix", "$");
-				
-				SeriesConfig sConfig = chartConfig.getSeriesConfig();
-				
-				sConfig.createSeriesProperties(0)
-					.addProperty("color", "9ACCF6").addProperty("alpha", "90");
-				sConfig.createSeriesProperties(1)
-					.addProperty("color", "82CF27").addProperty("alpha", "90")
-					.addProperty("parentYAxis", "S");
-			}
-		};
+	private static CategoryChartConfig createCombiCategoryChartConfig() {
+		CategoryChartConfig config = new CategoryChartConfig();
+		config.setAnimation(false);
+		config.setCanvasBgColor("F6DFD9");
+		config.addProperty("canvasBaseColor", "FE6E54");
+		config.addProperty("numberPrefix", "$");
+		
+		SeriesConfig sConfig = config.getSeriesConfig();
+		
+		sConfig.createSeriesProperties(0)
+			.addProperty("color", "9ACCF6").addProperty("alpha", "90");
+		sConfig.createSeriesProperties(1)
+			.addProperty("color", "82CF27").addProperty("alpha", "90")
+			.addProperty("parentYAxis", "S");
+		
+		return config;
 	}
 	
-	private static GanttChartRenderer createGanttRenderer() {
-		return new GanttChartRenderer() {
-			public void defineChartProperty(GanttChartConfig chartConfig) {
-				chartConfig.addProperty("canvasBorderColor", "024455")
-					.addProperty("canvasBorderThickness", "0");
-				
-				GanttChartCategoriesProperties cProps = 
-					chartConfig.getCategoriesConfig().createCategoriesProperties();
-				cProps.addProperty("bgColor", "4567aa");
-				
-				cProps.createCategoryProperties(
-						"Months", date(2008, 4, 1), date(2008, 9, 30))
-					.addProperty("align", "center")
-					.addProperty("font", "Verdana")
-					.addProperty("fontColor", "ffffff")
-					.addProperty("isBold", "1")
-					.addProperty("fontSize", "16");
-				
-				chartConfig.getHeaderConfig()
-					.addProperty("bgColor", "ffffff")
-					.addProperty("fontColor", "1288dd")
-					.addProperty("fontSize", "10");
-				
-				chartConfig.getProcessConfig()
-					.addProperty("bgColor", "4567aa")
-					.addProperty("fontColor", "ffffff")
-					.addProperty("fontSize", "10")
-					.addProperty("headerVAlign", "right")
-					.addProperty("headerbgColor", "4567aa")
-					.addProperty("headerFontColor", "ffffff")
-					.addProperty("headerFontSize", "16")
-					.addProperty("width", "80")
-					.addProperty("align", "left");
-				
-				chartConfig.getTasksProperties().addProperty("width", "10");
-				
-				GanttChartSeriesConfig sConfig = chartConfig.getSeriesConfig();
-				sConfig.createSeriesProperties("Scheduled")
-					.addProperty("color", "4567aa");
-				sConfig.createSeriesProperties("Actual")
-					.addProperty("color", "cccccc");
-			}
-		};
+	private static GanttChartConfig createGanttChartConfig() {
+		GanttChartConfig config = new GanttChartConfig();
+		config.addProperty("canvasBorderColor", "024455")
+			.addProperty("canvasBorderThickness", "0");
+		
+		GanttChartCategoriesProperties cProps = 
+			config.getCategoriesConfig().createCategoriesProperties();
+		cProps.addProperty("bgColor", "4567aa");
+		
+		cProps.createCategoryProperties("Months", 
+			date(2008, 4, 1), date(2008, 9, 30))
+				.addProperty("align", "center")
+				.addProperty("font", "Verdana")
+				.addProperty("fontColor", "ffffff")
+				.addProperty("isBold", "1")
+				.addProperty("fontSize", "16");
+		
+		config.getHeaderConfig()
+			.addProperty("bgColor", "ffffff")
+			.addProperty("fontColor", "1288dd")
+			.addProperty("fontSize", "10");
+		
+		config.getProcessConfig()
+			.addProperty("bgColor", "4567aa")
+			.addProperty("fontColor", "ffffff")
+			.addProperty("fontSize", "10")
+			.addProperty("headerVAlign", "right")
+			.addProperty("headerbgColor", "4567aa")
+			.addProperty("headerFontColor", "ffffff")
+			.addProperty("headerFontSize", "16")
+			.addProperty("width", "80")
+			.addProperty("align", "left");
+		
+		config.getTasksProperties().addProperty("width", "10");
+		
+		GanttChartSeriesConfig sConfig = config.getSeriesConfig();
+		sConfig.createSeriesProperties("Scheduled")
+			.addProperty("color", "4567aa");
+		sConfig.createSeriesProperties("Actual")
+			.addProperty("color", "cccccc");
+		
+		
+		defineGanttTable(config.getTableConfig());
+		
+		
+		return config;
 	}
 	
 	
 	
+	private static void defineGanttTable(GanttTableConfig config) {
+		config.addProperty("nameAlign", "left")
+			.addProperty("fontColor", "000000")
+			.addProperty("fontSize", "10")
+			.addProperty("headerBgColor", "00ffff")
+			.addProperty("headerFontColor", "4567aa")
+			.addProperty("headerFontSize", "11")
+			.addProperty("vAlign", "right")
+			.addProperty("align", "left");
+	
+		GanttTableColumnConfig cConfig = config.getColumnConfig();
+		cConfig.createColumnProperties(0)
+			.addProperty("headerText", "Dur")
+			.addProperty("align", "center")
+			.addProperty("headerfontcolor", "ffffff")
+			.addProperty("headerbgColor", "4567aa")
+			.addProperty("bgColor", "eeeeee");
+		
+		cConfig.createColumnProperties(1)
+			.addProperty("headerText", "Cost")
+			.addProperty("align", "right")
+			.addProperty("headerfontcolor", "ffffff")
+			.addProperty("headerbgColor", "4567aa")
+			.addProperty("bgColor", "4567aa")
+			.addProperty("bgAlpha", "25");
+	}
+
 	private static ListModel createGanttTableModel() {
 		ListModelList model = new ListModelList();
 		model.add(new String[]{"150","$400"});
@@ -301,36 +322,8 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 				row.createLabel(s[0]);
 				row.createLabel(s[1]);
 			}
-			public void defineTableProperty(GanttTableConfig tableConfig) {
-				tableConfig.addProperty("nameAlign", "left")
-					.addProperty("fontColor", "000000")
-					.addProperty("fontSize", "10")
-					.addProperty("headerBgColor", "00ffff")
-					.addProperty("headerFontColor", "4567aa")
-					.addProperty("headerFontSize", "11")
-					.addProperty("vAlign", "right")
-					.addProperty("align", "left");
-				
-				GanttTableColumnConfig cConfig = tableConfig.getColumnConfig();
-				cConfig.createColumnProperties(0)
-					.addProperty("headerText", "Dur")
-					.addProperty("align", "center")
-					.addProperty("headerfontcolor", "ffffff")
-					.addProperty("headerbgColor", "4567aa")
-					.addProperty("bgColor", "eeeeee");
-				
-				cConfig.createColumnProperties(1)
-					.addProperty("headerText", "Cost")
-					.addProperty("align", "right")
-					.addProperty("headerfontcolor", "ffffff")
-					.addProperty("headerbgColor", "4567aa")
-					.addProperty("bgColor", "4567aa")
-					.addProperty("bgAlpha", "25");
-				
-			}
 		};
 	}
-	
 	
 	
 	public void onSelect$typeList() {
@@ -402,8 +395,8 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 		private String type = "pie";
 		private boolean stacked = false;
 		private ChartModel model;
-		private boolean useRenderer = false;
-		private FusionchartRenderer renderer;
+		private boolean useChartConfig = false;
+		private ChartConfig chartConfig;
 
 		public AttrController() {
 			super();
@@ -439,8 +432,8 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 			this.type = type;
 			setModel((ChartModel) DEFAULT_MODEL.get(type));
 			
-			if (useRenderer)
-				setRenderer((FusionchartRenderer) DEFAULT_RENDERER.get(type));
+			if (useChartConfig)
+				setChartConfig((ChartConfig) DEFAULT_CONF.get(type));
 		}
 		
 		public String getType() {
@@ -455,22 +448,22 @@ public class FusionchartDemoComposer extends GenericForwardComposer {
 			return model;
 		}
 		
-		public void setUseRenderer(boolean useRenderer) {
-			this.useRenderer = useRenderer;
-			setRenderer(useRenderer ? 
-					(FusionchartRenderer) DEFAULT_RENDERER.get(type): null);
+		public boolean isUseChartConfig() {
+			return useChartConfig;
 		}
-		
-		public boolean isUseRenderer() {
-			return useRenderer;
+
+		public void setUseChartConfig(boolean useChartConfig) {
+			this.useChartConfig = useChartConfig;
+			setChartConfig(useChartConfig ? 
+					(ChartConfig) DEFAULT_CONF.get(type): null);
 		}
-		
-		public void setRenderer(FusionchartRenderer renderer) {
-			this.renderer = renderer;
+
+		public ChartConfig getChartConfig() {
+			return chartConfig;
 		}
-		
-		public FusionchartRenderer getRenderer() {
-			return renderer;
+
+		public void setChartConfig(ChartConfig chartConfig) {
+			this.chartConfig = chartConfig;
 		}
 	}
 	

@@ -52,7 +52,7 @@ public class XYChartConfig extends CategoryChartConfig {
 	 * @author jimmy
 	 * 
 	 */
-	public static class XAxisConfig extends PropertiesMapHandler {
+	public static class XAxisConfig extends PropertiesMapProperties {
 		private static final long serialVersionUID = 20110613225810L;
 
 		/**

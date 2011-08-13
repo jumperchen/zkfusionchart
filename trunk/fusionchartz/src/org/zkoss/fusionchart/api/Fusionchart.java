@@ -16,15 +16,16 @@ Copyright (C) 2011 Potix Corporation. All Rights Reserved.
  */
 package org.zkoss.fusionchart.api;
 
+import java.util.TimeZone;
+
 import org.zkoss.zk.ui.UiException;
 import org.zkoss.zul.CategoryModel;
 import org.zkoss.zul.ChartModel;
 import org.zkoss.zul.GanttModel;
+import org.zkoss.zul.ListModel;
 import org.zkoss.zul.PieModel;
 import org.zkoss.zul.XYModel;
-import org.zkoss.zul.impl.ChartEngine;
-import org.zkoss.zul.event.ChartAreaListener;
-import java.util.TimeZone;
+import org.zkoss.zul.event.ListDataEvent;
 
 /**
  * The Fusionchart component. Developers set proper chart type, data model,
@@ -178,4 +179,58 @@ public interface Fusionchart {
 	public void setModel(String clsnm) throws ClassNotFoundException,
 			NoSuchMethodException, IllegalAccessException,
 			InstantiationException, java.lang.reflect.InvocationTargetException;
+	/**
+	 * Returns the model associated with this gantt chart table,
+	 * or null if this grid is not
+	 * associated with any list data model.
+	 */
+	public ListModel getTableModel();
+	
+	/**
+	 * Sets the list model associated with this gantt chart table. If a non-null model is
+	 * assigned, no matter whether it is the same as the previous, it will
+	 * always cause re-render.
+	 * 
+	 * @param model
+	 *            the list model to associate, or null to dis-associate any
+	 *            previous model.
+	 * @exception UiException
+	 *                if failed to initialize with the model
+	 */
+	public void setTableModel(ListModel model);
+	
+	/**
+	 * Returns the implemetation chart engine.
+	 * 
+	 * @exception UiException
+	 *                if failed to load the engine.
+	 */
+	public FusionchartEngine getEngine() throws UiException;
+
+	/**
+	 * Sets the chart engine.
+	 */
+	public void setEngine(FusionchartEngine engine);
+	/**
+	 * Returns the renderer to render each row of gantt chart table, 
+	 * or null if the default renderer
+	 * is used.
+	 */
+	public GanttTableRenderer getTableRenderer();
+	/**
+	 * Sets the renderer which is used to render each row of gantt chart table
+	 *  if {@link #getModel}
+	 * is not null.
+	 * 
+	 * <p>
+	 * Note: changing a render will not cause the chart to re-render. If you want
+	 * it to re-render, you could assign the same model again (i.e.,
+	 * setTableModel(getTableModel())), or fire an {@link ListDataEvent} event.
+	 * 
+	 * @param renderer
+	 *            the renderer, or null to use the default.
+	 * @exception UiException
+	 *                if failed to initialize with the model
+	 */
+	public void setTableRenderer(GanttTableRenderer renderer);
 }

@@ -7,8 +7,8 @@
 					<panelchildren>
 						<checkbox label="threeD"
 							checked="@{attr.threeD}" />
-						<checkbox label="use renderer"
-							checked="@{attr.useRenderer}" />
+						<checkbox label="use ChartConfig"
+							checked="@{attr.useChartConfig}" />
 						<radiogroup
 							selectedIndex="@{attr.orient, converter='org.zkoss.zkfusionchartdemo.OrientConverter'}">
 							<radio label="vertical"/>
@@ -37,7 +37,7 @@
 						forward="onChartClick" />
 					<fusionchart id="fchart" title="@{attr.type}" width="500" height="250" type="@{attr.type}"
 						model="@{attr.model}" orient="@{attr.orient}" threeD="@{attr.threeD}"
-						chartRenderer="@{attr.renderer}"
+						chartConfig="@{attr.chartConfig}"
 						forward="onChartClick" />
 				</vlayout>
 			</center>

@@ -24,15 +24,25 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.zkoss.fusionchart.Fusionchart;
 import org.zkoss.fusionchart.api.FusionchartEngine;
-import org.zkoss.fusionchart.api.FusionchartRenderer;
-import org.zkoss.fusionchart.renderer.CategoryChartRenderer;
-import org.zkoss.fusionchart.renderer.GanttChartRenderer;
-import org.zkoss.fusionchart.renderer.PieChartRenderer;
+import org.zkoss.fusionchart.config.CategoriesConfig;
+import org.zkoss.fusionchart.config.CategoryChartConfig;
+import org.zkoss.fusionchart.config.ChartConfig;
+import org.zkoss.fusionchart.config.GanttChartConfig;
+import org.zkoss.fusionchart.config.GanttChartHeaderConfig;
+import org.zkoss.fusionchart.config.GanttTableConfig;
+import org.zkoss.fusionchart.config.PieChartConfig;
+import org.zkoss.fusionchart.config.ProcessConfig;
+import org.zkoss.fusionchart.config.PropertiesMapHandler;
+import org.zkoss.fusionchart.config.PropertiesMapProperties;
+import org.zkoss.fusionchart.config.PropertiesProxy;
+import org.zkoss.fusionchart.config.SeriesConfig;
+import org.zkoss.fusionchart.config.XYChartConfig;
 import org.zkoss.fusionchart.renderer.RenderUtils;
 import org.zkoss.lang.Objects;
 import org.zkoss.lang.Strings;
@@ -53,16 +63,17 @@ public class FusionChartEngine implements FusionchartEngine,
 	private static final long serialVersionUID = 20110319195510L;
 
 	// caching chartImpl if type and 3d are the same
-	private transient Fusionchart _chart;
+//	private transient Fusionchart _chart;
 	private transient boolean _threeD;
 	private transient String _type;
-	private transient ChartModel _model;
-	private transient FusionchartRenderer _renderer;
-
+//	private transient ChartModel _model;
+//	private transient FusionchartRenderer _renderer;
+//
 	private transient ChartImpl _chartImpl; // chart implementaion
 
 	public String createChartXML(Object data) {
-		return getChartImpl((Fusionchart) data).createChartXML();
+		Fusionchart chart = (Fusionchart) data;
+		return getChartImpl(chart).createChartXML(chart);
 	}
 
 	/**
@@ -77,11 +88,11 @@ public class FusionChartEngine implements FusionchartEngine,
 //				&& Objects.equals(chart.getChartRenderer(), _renderer)) {
 //			return _chartImpl;
 //		}
-		_chart = chart;
+//		_chart = chart;
 		_type = chart.getType();
 		_threeD = chart.isThreeD();
-		_model = chart.getModel();
-		_renderer = chart.getChartRenderer();
+//		_model = chart.getModel();
+//		_renderer = chart.getChartRenderer();
 
 		String errMsg = "";
 		String orient = chart.getOrient();
@@ -123,34 +134,30 @@ public class FusionChartEngine implements FusionchartEngine,
 	/**
 	 * transfer a PieModel into Fusionchart PieDataset.
 	 */
-	private String PieModelToPieDataset(PieModel model) {
-		StringBuffer sb = new StringBuffer();
-		String uuid = null;
-		if (Events.isListened(_chart, Events.ON_CLICK, false))
-			uuid = _chart.getUuid();
+	private StringBuffer PieModelToPieDataset(StringBuffer sb, String uuid,
+			PieModel model, PieChartConfig config) {
+		CategoriesConfig cateConfig = config == null ?  null:
+			PropertiesProxy.getCategoryConfig(config);
 
-		PieChartRenderer renderer = RenderUtils.getPieChartRenderer(_renderer);
-		
 		int index = 0;
 		for (final Iterator it = model.getCategories().iterator(); it.hasNext(); index++) {
 			Comparable category = (Comparable) it.next();
-			RenderUtils.renderPieSet(sb, index, category, model.getValue(category),
-					renderer, uuid);
+
+			RenderUtils.renderPieSet(sb, index, category,
+					model.getValue(category), cateConfig, uuid);
 		}
 
-		return sb.toString();
+		return sb;
 	}
 
 	/**
 	 * transfer a CategoryModel into Fusionchart PieDataset.
 	 */
-	private String CategoryModelToPieDataset(CategoryModel model) {
-		StringBuffer sb = new StringBuffer();
-		String uuid = null;
-		if (Events.isListened(_chart, Events.ON_CLICK, false))
-			uuid = _chart.getUuid();
-
-		PieChartRenderer renderer = RenderUtils.getPieChartRenderer(_renderer);
+	private StringBuffer CategoryModelToPieDataset(StringBuffer sb, String uuid,
+			CategoryModel model, PieChartConfig config) {
+		
+		CategoriesConfig cateConfig = config == null ?  null:
+			PropertiesProxy.getCategoryConfig(config);
 		
 		Collection cates = model.getCategories();
 		Comparable defaultSeries = null;
@@ -167,44 +174,61 @@ public class FusionChartEngine implements FusionchartEngine,
 			}
 			Comparable category = (Comparable) key.get(1);
 			int cIndex = ((List) cates).indexOf(category);
+			
+			
+			if (uuid != null)
+				RenderUtils.addClientEventInvok(sb, uuid, 0, cIndex);
+			
 			RenderUtils.renderPieSet(sb, cIndex, category,
-					model.getValue(series, category), renderer, uuid);
+					model.getValue(series, category), cateConfig, uuid);
+			
 			if (--max == 0)
 				break; // no more in this series
 		}
-		return sb.toString();
+		return sb;
 	}
 
 	/**
 	 * transfer a CategoryModel into JFreeChart CategoryDataset.
 	 */
-	private String CategoryModelToCategoryDataset(CategoryModel model) {
-		StringBuffer sb = new StringBuffer();
-		CategoryChartRenderer renderer = 
-			RenderUtils.getCategoryChartRenderer(_renderer);
+	private StringBuffer CategoryModelToCategoryDataset(StringBuffer sb, String uuid,
+			CategoryModel model, CategoryChartConfig config) {
 		
-		RenderUtils.renderCategory(sb, model.getCategories(), renderer);
-		
-		String uuid = null;
-		if (Events.isListened(_chart, Events.ON_CLICK, false))
-			uuid = _chart.getUuid();
-		
-		RenderUtils.renderSeries(sb, model, renderer, uuid);
+		CategoriesConfig cateConfig = null;
+		SeriesConfig serConfig = null;
+				
+		if (config != null) {
+			cateConfig = PropertiesProxy.getCategoryConfig(config);
+			serConfig = PropertiesProxy.getSeriesConfig(config);
+		}
+				
+		RenderUtils.renderCategory(sb, model.getCategories(), cateConfig);
+		RenderUtils.renderSeries(sb, model, serConfig, uuid);
 
-		if (_renderer != null)
-			_renderer.renderChildTages(sb);
+		if (config != null)
+			RenderUtils.renderTrendLine(sb,
+					PropertiesProxy.getTrendLineConfig(config));
 
-		return sb.toString();
+		return sb;
 	}
 
 	/**
 	 * transfer a XYModel into JFreeChart XYSeriesCollection.
 	 */
-	private String XYModelToXYDataset(XYModel model) {
-		StringBuffer sb = new StringBuffer();
+	private StringBuffer XYModelToXYDataset(StringBuffer sb, String uuid,
+			XYModel model, CategoryChartConfig config) {
 		
-		CategoryChartRenderer renderer = 
-			RenderUtils.getCategoryChartRenderer(_renderer);
+		PropertiesMapHandler serConfig = null;
+		PropertiesMapProperties cateConfig = null;
+				
+		if (config != null) {
+			serConfig = PropertiesProxy.getSeriesConfig(config);
+			
+			if (config instanceof XYChartConfig) 
+				cateConfig = PropertiesProxy.getXAxisConfig((XYChartConfig) config);
+			else 
+				cateConfig = PropertiesProxy.getCategoryConfig(config);
+		}
 		
 		Map seriesMap = new HashMap();
 		Set xSet = null;
@@ -228,48 +252,28 @@ public class FusionChartEngine implements FusionchartEngine,
 			seriesMap.put(series, indexMap);
 		}
 		
-		RenderUtils.renderCategory(sb, xSet, renderer);
+		RenderUtils.renderCategory(sb, xSet, cateConfig);
+		RenderUtils.renderXYSeries(sb, model, xSet, seriesMap, serConfig, uuid);
 		
-		String uuid = null;
-		if (Events.isListened(_chart, Events.ON_CLICK, false))
-			uuid = _chart.getUuid();
-		
-		RenderUtils.renderXYSeries(sb, model, xSet, seriesMap, renderer, uuid);
-		
-		if (_renderer != null)
-			_renderer.renderChildTages(sb);
+		if (config != null)
+			RenderUtils.renderTrendLine(sb,
+					PropertiesProxy.getTrendLineConfig(config));
 
-		return sb.toString();
-	}
-
-	/**
-	 * transfer a XYModel into JFreeChart DefaultTableXYDataset.
-	 */
-	private String XYModelToTableXYDataset(XYModel model) {
-		StringBuffer sb = new StringBuffer();
-		for (final Iterator it = model.getSeries().iterator(); it.hasNext();) {
-			final Comparable series = (Comparable) it.next();
-			// XYSeries xyser = new XYSeries(series, false, false);
-			final int size = model.getDataCount(series);
-			for (int j = 0; j < size; ++j) {
-
-				// xyser.add(model.getX(series, j), model.getY(series, j),
-				// false);
-			}
-			// dataset.addSeries(xyser);
-		}
-		return sb.toString();
+		return sb;
 	}
 
 	/**
 	 * transfer a GanttModel into JFreeChart GanttDataset.
 	 */
-	private String GanttModelToGanttDataset(GanttModel model) {
-		StringBuffer sb = new StringBuffer();
+	private StringBuffer GanttModelToGanttDataset(StringBuffer sb, String uuid, 
+			GanttModel model, GanttChartConfig config, TimeZone tz) {
 		
-		GanttChartRenderer renderer = null;
-		if (_renderer instanceof GanttChartRenderer)
-			renderer = (GanttChartRenderer) _renderer;
+//		GanttChartRenderer renderer = null;
+//		if (_renderer instanceof GanttChartRenderer)
+//			renderer = (GanttChartRenderer) _renderer;
+		
+		
+		
 		
 		
 		Comparable[] allseries = model.getAllSeries();
@@ -297,98 +301,123 @@ public class FusionChartEngine implements FusionchartEngine,
 			}
 		}
 		
-		RenderUtils.renderCategory(sb, _chart.getTimeZone(), 
-				new Date(startLong), new Date(endLong), renderer);
+		GanttChartHeaderConfig hConfig = null;
+		ProcessConfig pConfig = null;
 		
-		RenderUtils.renderProcess(sb, processSet, processIDMap, renderer);
+		if (config != null) {
+			hConfig = PropertiesProxy.getHeaderConfig(config);
+			pConfig = PropertiesProxy.getProcessConfig(config);
+			
+			RenderUtils.renderCategories(sb, 
+					PropertiesProxy.getCategoriesConfig(config));
+		}
 		
-		ListModel tModel = _chart.getTableModel();
-		if (tModel != null)
-			RenderUtils.renderGenttTable(sb, tModel, _chart.getTableRenderer());
+		RenderUtils.renderMonthHeaders(sb, tz, 
+				new Date(startLong), new Date(endLong), hConfig);
+		RenderUtils.renderProcess(sb, processSet, processIDMap, pConfig);
+		RenderUtils.renderTasks(sb, model, processIDMap, config, uuid);
 		
-		
-		String uuid = null;
-		if (Events.isListened(_chart, Events.ON_CLICK, false))
-			uuid = _chart.getUuid();
-		
-		RenderUtils.renderTasks(sb, model, processIDMap, renderer, uuid);
-		
-		
-		
-		if (renderer != null) {
-			renderer.renderChildTages(sb);
-			renderer.renderMilestone(sb, taskIDMap);
+		if (config != null) {
+			RenderUtils.renderTrendLine(sb,
+					PropertiesProxy.getTrendLineConfig(config));
+			
+			RenderUtils.renderMilestone(sb, taskIDMap, 
+					PropertiesProxy.getMilestoneConfig(config));
 		}
 
-		return sb.toString();
+		return sb;
 	}
 
 	// -- Chart specific implementation --//
 	/** base chart */
 	abstract private class ChartImpl {
-		abstract String createChartXML();
-
-		protected String createChart(String dataset) {
+		protected String createChartXML(Fusionchart chart) {
 			String tag = getChartTag();
-			StringBuffer sb = new StringBuffer("<").append(tag);
-
-			renderProperties(sb);
-
-			sb.append(">").append(dataset).append("</").append(tag).append(">");
+			StringBuffer sb = new StringBuffer();
+			renderProperties(sb.append("<").append(tag), chart).append(">");
+			
+			String uuid = null;
+			if (Events.isListened(chart, Events.ON_CLICK, false))
+				uuid = chart.getUuid();
+			
+			renderDataset(sb, uuid, chart.getModel(), chart.getChartConfig(), chart.getTimeZone());
+			
+			renderMoreData(sb, chart);
+			
+			sb.append("</").append(tag).append(">");
+			
 			return sb.toString();
 		}
+
+		protected abstract StringBuffer renderDataset(StringBuffer sb,
+				String uuid, ChartModel model, ChartConfig config, TimeZone tz);
 
 		protected String getChartTag() {
 			return "graph";
 		}
 
-		protected void renderProperties(StringBuffer sb) {
-			if (_renderer != null)
-				_renderer.renderChartProperty(sb);
+		protected StringBuffer renderProperties(StringBuffer sb, Fusionchart chart) {
+			ChartConfig config = chart.getChartConfig();
+			Utils.renderChartProperties(sb, config);
 
-			sb.append(Utils.renderFusionchartAttr("caption", _chart.getTitle()))
+			sb.append(Utils.renderFusionchartAttr("caption", chart.getTitle()))
 					.append(Utils.renderFusionchartAttr("subCaption",
-							_chart.getSubTitle()))
+							chart.getSubTitle()))
 					.append(Utils.renderFusionchartBoolean("showLegend",
-							_chart.isShowLegend()));
+							chart.isShowLegend()));
 			sb.append(" showValues='0'");
+			return sb;
+		}
+		
+		public void renderMoreData(StringBuffer sb, Fusionchart chart) {
 		}
 	}
 
 	abstract private class AxisLableChart extends ChartImpl {
-		protected void renderProperties(StringBuffer sb) {
-			super.renderProperties(sb);
-			sb.append(Utils.renderFusionchartAttr("xaxisname", _chart.getXAxis()))
-					.append(Utils.renderFusionchartAttr("yaxisname",
-							_chart.getYAxis()));
+		protected StringBuffer renderProperties(StringBuffer sb,
+				Fusionchart chart) {
+			return super.renderProperties(sb, chart)
+				.append(Utils.renderFusionchartAttr("xaxisname", chart.getXAxis()))
+				.append(Utils.renderFusionchartAttr("yaxisname", chart.getYAxis()));
 		}
 	}
 
 	/** pie chart */
 	private class Pie extends ChartImpl {
-		public String createChartXML() {
-			if (_model instanceof CategoryModel)
-				return createChart(CategoryModelToPieDataset((CategoryModel) _model));
-			if (_model instanceof PieModel)
-				return createChart(PieModelToPieDataset((PieModel) _model));
+		
+		protected StringBuffer renderDataset(StringBuffer sb, String uuid,
+				ChartModel model, ChartConfig config, TimeZone tz) {
+			
+			PieChartConfig pConfig = config instanceof PieChartConfig ? 
+					(PieChartConfig) config: null;
+
+			if (model instanceof CategoryModel)
+				return CategoryModelToPieDataset(sb, uuid, (CategoryModel) model, pConfig);
+			if (model instanceof PieModel)
+				return PieModelToPieDataset(sb, uuid, (PieModel) model, pConfig);
 
 			throw new UiException(
 					"The model of pie chart must be a org.zkoss.zul.PieModel or a org.zkoss.zul.CategoryModel");
 		}
 
-		protected void renderProperties(StringBuffer sb) {
-			super.renderProperties(sb);
-			sb.append(" shownames='1'");
+		protected StringBuffer renderProperties(StringBuffer sb,
+				Fusionchart chart) {
+			return super.renderProperties(sb, chart).append(" shownames='1'");
 		}
 	}
 
 	/** bar chart */
 	private class Bar extends AxisLableChart {
-		public String createChartXML() {
-			if (_model instanceof CategoryModel)
-				return createChart(CategoryModelToCategoryDataset((CategoryModel) _model));
-			if (_model instanceof XYModel)
-				return createChart(XYModelToXYDataset((XYModel) _model));
+		protected StringBuffer renderDataset(StringBuffer sb, String uuid,
+				ChartModel model, ChartConfig config, TimeZone tz) {
+			
+			CategoryChartConfig cConfig = config instanceof CategoryChartConfig ? 
+					(CategoryChartConfig) config: null;
+			
+			if (model instanceof CategoryModel)
+				return CategoryModelToCategoryDataset(sb, uuid, (CategoryModel) model, cConfig);
+			if (model instanceof XYModel)
+				return XYModelToXYDataset(sb, uuid, (XYModel) model, cConfig);
 
 			throw new UiException(
 					"The model of bar chart must be a org.zkoss.zul.CategoryModel or a org.zkoss.zul.XYModel");
@@ -397,11 +426,16 @@ public class FusionChartEngine implements FusionchartEngine,
 
 	/** area chart */
 	private class AreaImpl extends AxisLableChart {
-		public String createChartXML() {
-			if (_model instanceof CategoryModel)
-				return createChart(CategoryModelToCategoryDataset((CategoryModel) _model));
-			if (_model instanceof XYModel)
-				return createChart(XYModelToXYDataset((XYModel) _model));
+		protected StringBuffer renderDataset(StringBuffer sb, String uuid,
+				ChartModel model, ChartConfig config, TimeZone tz) {
+			
+			CategoryChartConfig cConfig = config instanceof CategoryChartConfig ? 
+					(CategoryChartConfig) config: null;
+			
+			if (model instanceof CategoryModel)
+				return CategoryModelToCategoryDataset(sb, uuid, (CategoryModel) model, cConfig);
+			if (model instanceof XYModel)
+				return XYModelToXYDataset(sb, uuid, (XYModel) model, cConfig);
 
 			throw new UiException(
 					"The model of area chart must be a org.zkoss.zul.CategoryModel or a org.zkoss.zul.XYModel");
@@ -410,11 +444,16 @@ public class FusionChartEngine implements FusionchartEngine,
 
 	/** line chart */
 	private class Line extends AxisLableChart {
-		public String createChartXML() {
-			if (_model instanceof CategoryModel)
-				return createChart(CategoryModelToCategoryDataset((CategoryModel) _model));
-			if (_model instanceof XYModel)
-				return createChart(XYModelToXYDataset((XYModel) _model));
+		protected StringBuffer renderDataset(StringBuffer sb, String uuid,
+				ChartModel model, ChartConfig config, TimeZone tz) {
+			
+			CategoryChartConfig cConfig = config instanceof CategoryChartConfig ? 
+					(CategoryChartConfig) config: null;
+			
+			if (model instanceof CategoryModel)
+				return CategoryModelToCategoryDataset(sb, uuid, (CategoryModel) model, cConfig);
+			if (model instanceof XYModel)
+				return XYModelToXYDataset(sb, uuid, (XYModel) model, cConfig);
 
 			throw new UiException(
 					"The model of line chart must be a org.zkoss.zul.CategoryModel or a org.zkoss.zul.XYModel");
@@ -423,11 +462,16 @@ public class FusionChartEngine implements FusionchartEngine,
 
 	/** stackedarea chart */
 	private class StackedArea extends AxisLableChart {
-		public String createChartXML() {
-			if (_model instanceof CategoryModel)
-				return createChart(CategoryModelToCategoryDataset((CategoryModel) _model));
-			else if (_model instanceof XYModel)
-				return createChart(XYModelToXYDataset((XYModel) _model));
+		protected StringBuffer renderDataset(StringBuffer sb, String uuid,
+				ChartModel model, ChartConfig config, TimeZone tz) {
+			
+			CategoryChartConfig cConfig = config instanceof CategoryChartConfig ? 
+					(CategoryChartConfig) config: null;
+			
+			if (model instanceof CategoryModel)
+				return CategoryModelToCategoryDataset(sb, uuid, (CategoryModel) model, cConfig);
+			if (model instanceof XYModel)
+				return XYModelToXYDataset(sb, uuid, (XYModel) model, cConfig);
 
 			throw new UiException(
 					"The model of stacked_area chart must be a org.zkoss.zul.CategoryModel or a org.zkoss.zul.XYModel");
@@ -438,23 +482,45 @@ public class FusionChartEngine implements FusionchartEngine,
 	 * gantt chart
 	 */
 	private class Gantt extends ChartImpl {
-		public String createChartXML() {
-			if (_model instanceof GanttModel)
-				return createChart(GanttModelToGanttDataset((GanttModel) _model));
+		protected StringBuffer renderDataset(StringBuffer sb, String uuid,
+				ChartModel model, ChartConfig config, TimeZone tz) {
+			
+			GanttChartConfig gConfig = config instanceof GanttChartConfig ? 
+					(GanttChartConfig) config: null;
+			
+			if (model instanceof GanttModel)
+				return GanttModelToGanttDataset(sb, uuid, (GanttModel) model, gConfig, tz);
 
 			throw new UiException(
 					"The model of gantt chart must be a org.zkoss.zul.GanttModel");
+		}
+		
+		public void renderMoreData(StringBuffer sb, Fusionchart chart) {
+			ListModel tModel = chart.getTableModel();
+			if (tModel != null) {
+				ChartConfig config = chart.getChartConfig();
+				GanttTableConfig tConfig = null;
+				
+				if (config instanceof GanttChartConfig)
+					tConfig = PropertiesProxy.getTableConfig(
+							(GanttChartConfig) config);
+				
+				RenderUtils.renderGenttTable(sb, tModel, 
+						chart.getTableRenderer(), tConfig);
+			}
 		}
 
 		protected String getChartTag() {
 			return "chart";
 		}
 
-		protected void renderProperties(StringBuffer sb) {
-			super.renderProperties(sb);
-			sb.append(" dateFormat='MM/dd/yyyy'");
+		protected StringBuffer renderProperties(StringBuffer sb,
+				Fusionchart chart) {
+			return super.renderProperties(sb, chart).append(" dateFormat='MM/dd/yyyy'");
 		}
 	}
+
+	
 
 
 }

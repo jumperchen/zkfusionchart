@@ -2,7 +2,6 @@ package org.zkoss.fusionchart.config;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.zkoss.fusionchart.api.ChartProperties;

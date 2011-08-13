@@ -28,7 +28,7 @@ import org.zkoss.zul.event.ChartDataEvent;
  * @author jimmy
  * 
  */
-abstract class PropertiesMapHandler extends ChartInfoNotifier {
+public abstract class PropertiesMapHandler extends ChartInfoNotifier {
 	private static final long serialVersionUID = 20110613230240L;
 	private Map _propertyMap = new LinkedHashMap(10);
 
