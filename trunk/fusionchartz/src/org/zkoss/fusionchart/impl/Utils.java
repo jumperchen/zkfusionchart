@@ -115,17 +115,25 @@ public class Utils {
 		return Integer.parseInt(str);
 	}
 	
-//	public static final void addClientEventInvok(String uuid, StringBuffer sb,
-//	int seriIndex, int cateIndex) {
-//sb.append(" link=\"JavaScript:zk.Widget.$('").append(uuid)
-//		.append("').clickChart('").append(seriIndex).append("','")
-//		.append(cateIndex).append("');\"");
-//}
-//
-//public static final void addClientEventInvok(String uuid, StringBuffer sb,
-//	int index, int seriIndex, int cateIndex) {
-//sb.append(" link=\"JavaScript:zk.Widget.$('").append(uuid)
-//		.append("').clickChart('").append(seriIndex).append("','")
-//		.append(cateIndex).append("','").append(index).append("');\"");
-//}
+	public static final String escapeXML(String s) {
+		if (s == null) return "";
+		final StringBuffer sb = new StringBuffer(s.length() + 16);
+		for (int j = 0, len = s.length(); j < len; ++j) {
+			final char cc = s.charAt(j);
+			final String esc = escapeXML(cc);
+			if (esc != null) sb.append(esc);
+			else sb.append(cc);
+		}
+		return s.length() == sb.length() ? s: sb.toString();
+	}
+	
+	public static final String escapeXML(char cc) {
+		switch (cc) {
+		case '\'': return "%26apos;";
+		case '>': return "&gt;";
+		case '<': return "&lt;";
+		case '&': return "&amp;";
+		}
+		return null;
+	}
 }

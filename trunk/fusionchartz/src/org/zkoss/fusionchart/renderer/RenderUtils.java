@@ -92,7 +92,7 @@ public class RenderUtils {
 		int index = 0;
 		for (final Iterator it = c.iterator(); it.hasNext(); index++) {
 			Comparable category = (Comparable) it.next();
-			sb.append("<category name='").append(category).append("'");
+			sb.append("<category name='").append(Utils.escapeXML(category.toString())).append("'");
 			
 			if (config != null)
 				Utils.renderChartProperties(sb, 
@@ -107,7 +107,7 @@ public class RenderUtils {
 	/*Series*/
 	private final static void renderSeriesBegin(StringBuffer sb, int index,
 			Comparable series, PropertiesMapHandler config) {
-		sb.append("<dataset seriesName='").append(series).append("'");
+		sb.append("<dataset seriesName='").append(Utils.escapeXML(series.toString())).append("'");
 		
 		if (config != null)
 			Utils.renderChartProperties(sb, 
@@ -236,7 +236,7 @@ public class RenderUtils {
 		int i = 0;
 		do {
 			
-			sb.append("<category name='").append(df.format(startDate)).append("'")
+			sb.append("<category name='").append(Utils.escapeXML(df.format(startDate))).append("'")
 				.append(Utils.renderFusionchartDate("start", startDate));
 			
 			cal.add(period, 1);
@@ -269,7 +269,7 @@ public class RenderUtils {
 		for (Iterator it = processSet.iterator(); it.hasNext(); index++) {
 			String taskName = (String) it.next();
 			
-			sb.append("<process name='").append(taskName)
+			sb.append("<process name='").append(Utils.escapeXML(taskName))
 				.append("' id='").append(processIDMap.get(taskName)).append("'");
 		
 			if (config != null)
@@ -322,7 +322,7 @@ public class RenderUtils {
 				String taskName = task.getDescription();
 				Integer processId = (Integer) processIDMap.get(taskName);
 				
-				sb.append("<task name='").append(series)
+				sb.append("<task name='").append(Utils.escapeXML(series.toString()))
 					.append("' id='").append(processId).append("_").append(k)
 					.append("' processId='").append(processId).append("'")
 					.append(Utils.renderFusionchartDate("start", task.getStart()))
@@ -451,8 +451,8 @@ public class RenderUtils {
 				sb.append("<trendlines"), config).append(">");
 		for (int i = 0; i < size; i++)
 			Utils.renderChartProperties(
-					sb.append("<line"), config.getTrendLine(i))
-					.append("/>");
+				sb.append("<line"), config.getTrendLine(i))
+				.append("/>");
 		sb.append("</trendlines>");
 	}
 	
