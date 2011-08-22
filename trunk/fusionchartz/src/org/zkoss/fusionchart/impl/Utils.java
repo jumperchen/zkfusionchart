@@ -132,7 +132,7 @@ public class Utils {
 		case '\'': return "%26apos;";
 		case '>': return "&gt;";
 		case '<': return "&lt;";
-		case '&': return "&amp;";
+		case '&': return "%26";
 		}
 		return null;
 	}
